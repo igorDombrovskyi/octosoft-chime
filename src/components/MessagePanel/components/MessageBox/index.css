@@ -1,0 +1,57 @@
+.message-box-container {
+    min-width: 427px;
+    height: 78.66px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+
+.input {
+    min-width: 354.02px;
+    width: 100%;
+    min-height: 42px;
+    height: fit-content;
+    border: 0.4px solid #dfe0eb;
+    border-radius: 4px;
+    padding-right: 40px;
+    margin-left: 20px;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    padding-left: 12px;
+}
+
+input:focus {
+    outline: none !important;
+    border: 1px solid #0f63ff;
+    box-shadow: 0 0 0.3px #719ece;
+}
+
+input::placeholder {
+    color: #a0a0a0;
+    padding: 15px 299px 15px 0;
+}
+
+.input-icon {
+    position: absolute;
+    right: 14px;
+}
+
+.message-to-reply {
+    display: flex;
+    justify-content: center;
+    text-align: justify;
+    border-top: 1px solid grey;
+    border-right: 1px solid grey;
+    border-bottom: none;
+    border-left: 1px solid grey;
+    font-size: 12px;
+    text-overflow: ellipsis;
+}
