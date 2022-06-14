@@ -9,7 +9,6 @@ import { ReactComponent as PhoneCall } from "../../utils/icons/phone-call.svg";
 import { ReactComponent as StopCircle } from "../../utils/icons/stop-circle.svg";
 import { ReactComponent as Video } from "../../utils/icons/video.svg";
 import { ReactComponent as Minimze } from "../../utils/icons/minimize.svg";
-import faker from "@faker-js/faker";
 
 import "./index.css";
 
@@ -22,19 +21,63 @@ export default function Meeting(props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [muteMic, setMuteMic] = useState(false);
   const [stopLocalVideo, setStopLocalVideo] = useState(false);
+  const [videoDeviceList, setVideoDeviceList] = useState([]);
+  const [audioInputDeviceList, setAudioInputDeviceList] = useState([]);
+  const [audioOutputDeviceList, setAudioOutputDeviceList] = useState([]);
+  const [videoDeviceSelected, setVideoDeviceSelected] = useState();
+  const [audioInput, setAudioInput] = useState({});
+  const [audioOutput, setAudioOutput] = useState({});
 
   const fullVideoTile = useRef();
   const smallVideoTile = useRef();
   const meetingContainer = useRef();
 
+  const [users, setUsers] = useState([
+    {
+      userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+      label: "Doctor",
+    },
+    {
+      userId: "dfd529c7-0717-460d-8aee-e85242c41af1",
+      label: "Patient",
+    },
+  ]);
+
+  const startMeet = (userId, companionId) => {
+    getMeeting(userId, companionId).then((response) => {
+      setMeetingResponse(response.Meeting);
+      setAttendeeResponse(response.Attendee);
+    });
+  };
+
+  const changeVidDev = async (label) => {
+    console.log(label);
+    const list = await session.audioVideo.listVideoInputDevices();
+    const dev = list.find((d) => d.label === label);
+    await session.audioVideo.stopVideoInput();
+    await session.audioVideo.startVideoInput(dev.deviceId);
+  };
+
+  const changeAudioInput = async (label) => {};
+
   useEffect(() => {
-    if (user.companion.companionId) {
-      getMeeting(user.userId, user.companion.companionId).then((response) => {
-        setMeetingResponse(response.Meeting);
-        setAttendeeResponse(response.Attendee);
-      });
-    }
-  }, [user.companion.companionId]);
+    // window.navigator.permissions
+    //   .query({ name: "microphone" })
+    //   .then((permissionObj) => {
+    //     console.log(permissionObj.state);
+    //   })
+    //   .catch((error) => {
+    //     console.log("Got error :", error);
+    //   });
+    // window.navigator.permissions
+    //   .query({ name: "camera" })
+    //   .then((permissionObj) => {
+    //     console.log(permissionObj.state);
+    //   })
+    //   .catch((error) => {
+    //     console.log("Got error :", error);
+    //   });
+  }, []);
 
   useEffect(() => {
     if (meetingResponse && attendeeResponse) {
@@ -42,6 +85,14 @@ export default function Meeting(props) {
       joinVideoCall();
     }
   }, [meetingResponse, attendeeResponse]);
+
+  useEffect(() => {
+    if (session.audioVideo) {
+      stopLocalVideo
+        ? session.audioVideo.stopLocalVideoTile()
+        : session.audioVideo.startLocalVideoTile();
+    }
+  }, [stopLocalVideo]);
 
   useEffect(() => {
     smallVideoTile.current.id = "small-video";
@@ -84,6 +135,8 @@ export default function Meeting(props) {
       deviceController
     );
 
+    const messagingSession = new Chime.MessagingSessionConfiguration();
+
     meetingSession.audioVideo.setDeviceLabelTrigger(async () => {
       this.switchToFlow("flow-need-permission");
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -104,18 +157,10 @@ export default function Meeting(props) {
           fullVideoTile.current
         );
       },
-      //   videoTileDidAdd: (tileState) => {
-      //     if (tileState.localTile) {
-      //       let myVideo = document.getElementById("my-video");
-
-      //       const localTileId = meetingSession.audioVideo.startLocalVideoTile();
-      //       meetingSession.audioVideo.bindVideoElement(localTileId, myVideo);
-      //     }
-      //   },
       videoTileDidUpdate: (tileState) => {
-        if (!tileState.boundAttendeeId || !tileState.localTile) {
-          return;
-        }
+        // if (!tileState.boundAttendeeId || !tileState.localTile) {
+        //   return;
+        // }
         meetingSession.audioVideo.bindVideoElement(
           tileState.tileId,
           smallVideoTile.current
@@ -134,39 +179,54 @@ export default function Meeting(props) {
 
     meetingSession.audioVideo.addObserver(observer);
 
-    const firstVideoDeviceId = (
-      await meetingSession.audioVideo.listVideoInputDevices()
-    )[0].deviceId;
-    console.log(firstVideoDeviceId);
+    const videoDeviceList =
+      await meetingSession.audioVideo.listVideoInputDevices(false);
+    setVideoDeviceList(videoDeviceList);
 
-    await meetingSession.audioVideo.startVideoInput(firstVideoDeviceId);
+    const audioDeviceList =
+      await meetingSession.audioVideo.listAudioInputDevices(false);
+    setAudioInputDeviceList(audioDeviceList);
 
-    const availableAudioInputDevices = (
-      await meetingSession.audioVideo.listAudioInputDevices()
-    )[0].deviceId;
+    setVideoDeviceSelected(videoDeviceList[0].deviceId);
+    console.log("SELECTED VIDEO DEVICE: ", videoDeviceList[0].deviceId);
 
-    await meetingSession.audioVideo.startAudioInput(availableAudioInputDevices);
+    let i = 0;
+    try {
+      await meetingSession.audioVideo.startVideoInput(
+        videoDeviceList[i].deviceId
+      );
+    } catch (error) {
+      if (videoDeviceList[i + 1].deviceId) {
+        await meetingSession.audioVideo.startVideoInput(
+          videoDeviceList[i + 1].deviceId
+        );
+      }
+    }
+    setAudioInput(audioDeviceList[0].deviceId);
+
+    try {
+      await meetingSession.audioVideo.startAudioInput(
+        audioDeviceList[0].deviceId
+      );
+    } catch (error) {
+      await meetingSession.audioVideo.startAudioInput(
+        audioDeviceList[1].deviceId
+      );
+    }
 
     meetingSession.audioVideo.bindAudioElement(
       document.getElementById("my-audio-element")
     );
 
+    setSession(meetingSession);
     meetingSession.audioVideo.startLocalVideoTile();
     meetingSession.audioVideo.start();
-    setSession(meetingSession);
-
-    if (stopLocalVideo) {
-      console.log("LOCAL VIDEO STOPPED?: ", stopLocalVideo);
-      meetingSession.audioVideo.stopLocalVideoTile();
-    }
   };
 
   const stopAudioVideo = async () => {
     await session.audioVideo.stopVideoInput();
     await session.audioVideo.stopAudioInput();
-    session.audioVideo.stopVideoPreviewForVideoInput(
-      document.getElementById("my-video")
-    );
+    session.audioVideo.stopVideoPreviewForVideoInput(fullVideoTile.current);
 
     session.audioVideo.stop();
     return true;
@@ -182,14 +242,78 @@ export default function Meeting(props) {
   };
 
   const muteLocalMic = () => {
+    const muted = session.audioVideo.realtimeIsLocalAudioMuted();
+    if (muted) {
+      console.log("You are muted");
+      session.audioVideo.realtimeUnmuteLocalAudio();
+    } else {
+      console.log("Other attendees can hear your audio");
+      session.audioVideo.realtimeMuteLocalAudio();
+    }
+
     setMuteMic(!muteMic);
-    muteMic
-      ? session.audioVideo.realtimeMuteLocalAudio()
-      : session.audioVideo.realtimeUnmuteLocalAudio();
   };
 
   return (
     <div className="meeting-container" ref={meetingContainer}>
+      <select
+        onChange={(e) => {
+          e.preventDefault();
+          startMeet(
+            users.find((u) => u.userId === e.target.value).userId,
+            users.find((u) => u.userId !== e.target.value).userId
+          );
+        }}
+      >
+        <option defaultValue>Select user to call</option>
+        {users.map((user, i) => {
+          return <option value={user.userId}>{user.label}</option>;
+        })}
+      </select>
+      {videoDeviceList ? (
+        <select
+          disabled
+          onChange={(e) => {
+            e.preventDefault();
+            // setVideoDeviceSelected(e.target.value.deviceId);
+            changeVidDev(e.target.value);
+          }}
+        >
+          {videoDeviceList.map((videoDevice, i) => {
+            console.log(videoDevice);
+            return (
+              <option
+                defaultValue={
+                  videoDeviceSelected === videoDevice.deviceId ? true : false
+                }
+                value={videoDevice.label}
+              >
+                {videoDevice.label}
+              </option>
+            );
+          })}
+        </select>
+      ) : (
+        ""
+      )}
+      {audioInputDeviceList ? (
+        <select
+          onChange={(e) => {
+            e.preventDefault();
+            setVideoDeviceSelected(e.target.value);
+
+            session.audioVideo.startAudioInput(e.target.value.deviceId);
+          }}
+        >
+          {audioInputDeviceList.map((audioDevice, i) => {
+            console.log(audioDevice);
+            return <option value={audioDevice}>{audioDevice.label}</option>;
+          })}
+        </select>
+      ) : (
+        ""
+      )}
+
       <div className="control-btns">
         <button
           onClick={(e) => {
@@ -197,7 +321,7 @@ export default function Meeting(props) {
             muteLocalMic();
           }}
         >
-          <Mic />
+          {muteMic ? <Mic fill="red" /> : <Mic />}
         </button>
         <button
           onClick={(e) => {
@@ -205,15 +329,17 @@ export default function Meeting(props) {
             setStopLocalVideo(!stopLocalVideo);
           }}
         >
-          <Video />
+          <Video fill={stopLocalVideo ? "red" : ""} />
         </button>
         <button>
           <StopCircle />
         </button>
-        <button onClick={(e) => {
-          e.preventDefault();
-          props.meetingStarted(false);
-        }}>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            props.meetingStarted(false);
+          }}
+        >
           <Message />
         </button>
         <button
@@ -245,7 +371,7 @@ export default function Meeting(props) {
           id="remote-attendee-video"
           onClick={(e) => {
             e.preventDefault();
-            toggleVideoTile();
+            // toggleVideoTile();
           }}
         ></video>
         <div
@@ -267,6 +393,7 @@ async function getMeeting(userId, companionId) {
     const response = await chimeAxios.post("meeting/createMeeting", {
       userId: userId,
       companionId: companionId,
+      remainingTime: 900,
     });
 
     return response.data;

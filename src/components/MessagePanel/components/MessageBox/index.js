@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { chimeAxios } from "../../../../helpers/axios.helper";
@@ -39,6 +38,7 @@ export default function MessageBox(props) {
       formData.append("file", file.file, file.fileName);
       formData.append("channelArn", channelSelector.channelArn);
       formData.append("userId", userSelector.userId);
+      formData.append('pendingId', file.fileName + 'kkfo')
       chimeAxios.post("messaging/sendChannelAttachment", formData, {
         headers: {
           "Content-Type": "multipart/form-data",

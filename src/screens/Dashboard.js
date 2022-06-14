@@ -73,6 +73,8 @@ export default function Dashboard() {
     socket.onerror = function (error) {
       alert(`[error] ${error.message}`);
     };
+
+    return socket;
   };
 
   return (
