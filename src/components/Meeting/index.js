@@ -154,18 +154,22 @@ export default function Meeting(props) {
         const localTileId = meetingSession.audioVideo.startLocalVideoTile();
         meetingSession.audioVideo.bindVideoElement(
           localTileId,
-          fullVideoTile.current
+          smallVideoTile.current
         );
       },
       videoTileDidUpdate: (tileState) => {
-        // if (!tileState.boundAttendeeId || !tileState.localTile) {
-        //   return;
-        // }
-        meetingSession.audioVideo.bindVideoElement(
-          tileState.tileId,
-          smallVideoTile.current
-        );
-        localTileId = tileState.tileId;
+        if (!tileState.localTile) {
+          meetingSession.audioVideo.bindVideoElement(
+            tileState.tileId,
+            fullVideoTile.current
+          );
+        } else {
+          meetingSession.audioVideo.bindVideoElement(
+            tileState.tileId,
+            smallVideoTile.current
+          );
+          localTileId = tileState.tileId;
+        }
       },
       videoTileWasRemoved: (tileId) => {
         if (localTileId === tileId) {
@@ -230,15 +234,6 @@ export default function Meeting(props) {
 
     session.audioVideo.stop();
     return true;
-  };
-
-  const toggleVideoTile = () => {
-    fullVideoTile.current.id =
-      fullVideoTile.current.id === "full-video" ? "small-video" : "full-video";
-    smallVideoTile.current.id =
-      smallVideoTile.current.id === "small-video"
-        ? "full-video"
-        : "small-video";
   };
 
   const muteLocalMic = () => {
@@ -329,7 +324,7 @@ export default function Meeting(props) {
             setStopLocalVideo(!stopLocalVideo);
           }}
         >
-          <Video fill={stopLocalVideo ? "red" : ""} />
+          {stopLocalVideo ? <Video fill="red" /> : <Video />}
         </button>
         <button>
           <StopCircle />
@@ -346,7 +341,11 @@ export default function Meeting(props) {
           id="stop-call"
           onClick={(e) => {
             e.preventDefault();
-            deleteMeeting(meetingResponse.MeetingId).then(() => {
+
+            deleteAttendee(
+              meetingResponse.MeetingId,
+              attendeeResponse.AttendeeId
+            ).then(() => {
               console.log("deleted");
             });
             stopAudioVideo().then(() => {
@@ -371,7 +370,6 @@ export default function Meeting(props) {
           id="remote-attendee-video"
           onClick={(e) => {
             e.preventDefault();
-            // toggleVideoTile();
           }}
         ></video>
         <div
@@ -402,11 +400,12 @@ async function getMeeting(userId, companionId) {
   }
 }
 
-async function deleteMeeting(meetingId) {
+async function deleteAttendee(meetingId, attendeeId) {
   try {
-    const response = await chimeAxios.delete("meeting/deleteMeeting", {
+    const response = await chimeAxios.delete("meeting/deleteAttendee", {
       data: {
         meetingId: meetingId,
+        attendeeId: attendeeId,
       },
     });
 
