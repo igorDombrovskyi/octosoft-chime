@@ -23,10 +23,7 @@ export default function Meeting(props) {
   const [stopLocalVideo, setStopLocalVideo] = useState(false);
   const [videoDeviceList, setVideoDeviceList] = useState([]);
   const [audioInputDeviceList, setAudioInputDeviceList] = useState([]);
-  const [audioOutputDeviceList, setAudioOutputDeviceList] = useState([]);
   const [videoDeviceSelected, setVideoDeviceSelected] = useState();
-  const [audioInput, setAudioInput] = useState({});
-  const [audioOutput, setAudioOutput] = useState({});
 
   const fullVideoTile = useRef();
   const smallVideoTile = useRef();
@@ -34,11 +31,13 @@ export default function Meeting(props) {
 
   const [users, setUsers] = useState([
     {
-      userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+      // userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+      userId: "6731ed58-3cf2-4303-97c4-0c5eb0c1d7c1",
       label: "Doctor",
     },
     {
-      userId: "dfd529c7-0717-460d-8aee-e85242c41af1",
+      // userId: "dfd529c7-0717-460d-8aee-e85242c41af1",
+      userId: "1f07b3fe-c2cd-43f1-85d5-3aa04ed93333",
       label: "Patient",
     },
   ]);
@@ -58,25 +57,8 @@ export default function Meeting(props) {
     await session.audioVideo.startVideoInput(dev.deviceId);
   };
 
-  const changeAudioInput = async (label) => {};
-
   useEffect(() => {
-    // window.navigator.permissions
-    //   .query({ name: "microphone" })
-    //   .then((permissionObj) => {
-    //     console.log(permissionObj.state);
-    //   })
-    //   .catch((error) => {
-    //     console.log("Got error :", error);
-    //   });
-    // window.navigator.permissions
-    //   .query({ name: "camera" })
-    //   .then((permissionObj) => {
-    //     console.log(permissionObj.state);
-    //   })
-    //   .catch((error) => {
-    //     console.log("Got error :", error);
-    //   });
+    startLocalStream();
   }, []);
 
   useEffect(() => {
@@ -135,8 +117,6 @@ export default function Meeting(props) {
       deviceController
     );
 
-    const messagingSession = new Chime.MessagingSessionConfiguration();
-
     meetingSession.audioVideo.setDeviceLabelTrigger(async () => {
       this.switchToFlow("flow-need-permission");
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -148,25 +128,24 @@ export default function Meeting(props) {
     });
 
     let localTileId = null;
+    const smallVideo = document.getElementById("small-video");
+    const fullVideo = document.getElementById("full-video");
 
     const observer = {
       audioVideoDidStart: () => {
         const localTileId = meetingSession.audioVideo.startLocalVideoTile();
-        meetingSession.audioVideo.bindVideoElement(
-          localTileId,
-          smallVideoTile.current
-        );
+        meetingSession.audioVideo.bindVideoElement(localTileId, smallVideo);
       },
       videoTileDidUpdate: (tileState) => {
         if (!tileState.localTile) {
           meetingSession.audioVideo.bindVideoElement(
             tileState.tileId,
-            fullVideoTile.current
+            fullVideo
           );
         } else {
           meetingSession.audioVideo.bindVideoElement(
             tileState.tileId,
-            smallVideoTile.current
+            smallVideo
           );
           localTileId = tileState.tileId;
         }
@@ -206,7 +185,6 @@ export default function Meeting(props) {
         );
       }
     }
-    setAudioInput(audioDeviceList[0].deviceId);
 
     try {
       await meetingSession.audioVideo.startAudioInput(
@@ -270,7 +248,6 @@ export default function Meeting(props) {
           disabled
           onChange={(e) => {
             e.preventDefault();
-            // setVideoDeviceSelected(e.target.value.deviceId);
             changeVidDev(e.target.value);
           }}
         >
@@ -352,8 +329,8 @@ export default function Meeting(props) {
               console.log("stopped");
             });
 
-            setAttendeeResponse({});
             setMeetingResponse({});
+            stopLocalStream();
             props.meetingStarted(false);
           }}
         >
@@ -363,11 +340,10 @@ export default function Meeting(props) {
       <div className="meeting-source-container">
         <audio id="my-audio-element"></audio>
 
-        <video id="my-video" ref={fullVideoTile}></video>
+        <video ref={fullVideoTile}></video>
 
         <video
           ref={smallVideoTile}
-          id="remote-attendee-video"
           onClick={(e) => {
             e.preventDefault();
           }}
@@ -412,5 +388,23 @@ async function deleteAttendee(meetingId, attendeeId) {
     return response.data;
   } catch (error) {
     return error;
+  }
+}
+
+function stopLocalStream() {
+  window.localStream.getTracks().forEach((track) => {
+    track.stop();
+  });
+}
+
+async function startLocalStream() {
+  try {
+    const stream = await window.navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    window.localStream = stream;
+  } catch (error) {
+    console.log(error);
   }
 }

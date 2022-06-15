@@ -50,7 +50,7 @@
     height: 123.93px;
     width: 97.06px;
     border-radius: 6.41726px;
-    border: 1px solid cyan;
+    -webkit-transform: translate3d(0, 0, 0) !important;
 }
 
 #expand-btn {
@@ -153,4 +153,8 @@
 
 .meeting-container-expand .control-btns {
     top: 57%;
+}
+
+#my-video {
+    -webkit-transform: translate3d(0, 0, 0);
 }
