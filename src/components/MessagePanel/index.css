@@ -91,7 +91,7 @@
     min-width: 435px;
     height: 268px;
     padding: 40px 24px;
-    overflow-y: auto;
+    overflow-y: scroll;
     width: 100%;
 }
 

@@ -3,7 +3,7 @@ import "./index.css";
 import { faker } from "@faker-js/faker";
 import { chimeAxios } from "../../helpers/axios.helper";
 import { useDispatch, useSelector } from "react-redux";
-import { setChannelMessages } from "../../features/channel";
+import { setChannelMessages,setNextToken } from "../../features/channel";
 import { ReactComponent as PhoneCall } from "../../utils/icons/phone-call.svg";
 import Message from "./components/Message";
 import MessageBox from "./components/MessageBox";
@@ -13,10 +13,11 @@ export default function MessagePanel(props) {
   const channelSelector = useSelector((state) => state.channel);
   const dispatch = useDispatch();
 
-  const scrollList = useRef();
+  const scrollList = useRef(null);
   const mainContainer = useRef();
   const messageRefs = useRef([]);
   const phonCall = useRef();
+  const listInnerRef = useRef();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [msgToUpdate, setMsgToUpdate] = useState({
@@ -38,6 +39,26 @@ export default function MessagePanel(props) {
       channelSelector.channelArn,
       content
     ).then();
+  };
+
+  const onScroll = (e) => {
+    if (e.target.scrollTop) {
+      const { scrollTop, scrollHeight, clientHeight, innerHeight } = e.target
+      if (Math.round(scrollTop + clientHeight, 10) === Math.round(scrollHeight, 10)) {
+        // TO SOMETHING HERE
+        console.log('Reached bottom')
+        listMessages(userSelector.userId, props.channelArn, channelSelector.nextToken).then((response) => {
+         
+         dispatch(setNextToken(response.NextToken || null));
+         if(response.NextToken) {
+
+          dispatch(setChannelMessages(response.ChannelMessages));
+         }
+         console.log(channelSelector.nextToken)
+        });
+        
+      }
+    }
   };
 
   const handleMessageReply = (messageId, content) => {
@@ -151,6 +172,15 @@ export default function MessagePanel(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.channelArn]);
 
+  // useEffect(() => {
+  //   if(nextToken) {
+  //     listMessages(userSelector.userId, props.channelArn, nextToken).then((response) => {
+  //       dispatch(setChannelMessages(response.ChannelMessages));
+  //       setNextToken(response.NextToken || '')
+  //     })
+  //   }
+  // }, [nextToken])
+
   useEffect(() => {
     scrollList.current.scrollTop = scrollList.current.scrollHeight;
   }, [channelSelector.channelMessages]);
@@ -204,7 +234,7 @@ export default function MessagePanel(props) {
           opacity: "0.06",
         }}
       ></div>
-      <div className="message-list" ref={scrollList}>
+      <div onScroll={onScroll} className="message-list" ref={scrollList}>
         {channelSelector.channelMessages.length ? (
           channelSelector.channelMessages.map((message, i) => {
             return (
@@ -277,12 +307,13 @@ async function sendMessage(userId, channelArn, content) {
   }
 }
 
-async function listMessages(userId, channelArn) {
+async function listMessages(userId, channelArn, nextToken) {
   try {
     const resp = await chimeAxios.get("messaging/listChannelMessages", {
       params: {
         userId: userId,
         channelArn: channelArn,
+        nextToken: nextToken || ''
       },
     });
 

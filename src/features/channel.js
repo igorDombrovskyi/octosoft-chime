@@ -6,6 +6,7 @@ export const channelSlice = createSlice({
     channelList: [],
     channelArn: "",
     channelMessages: [],
+    nextToken: '',
   },
   reducers: {
     setChannels: (state, value) => {
@@ -65,9 +66,15 @@ export const channelSlice = createSlice({
         (c) => c.ChannelSummary.ChannelArn === value.payload
       );
       channel.lastMessage = "";
+      state.channelMessages = [];
     },
     setChannelMessages: (state, value) => {
-      state.channelMessages = value.payload.reverse();
+      // state.channelMessages = value.payload.reverse();
+      const arr = value.payload.reverse();
+      state.channelMessages = [...state.channelMessages, ...arr];
+    },
+    setNextToken: (state, value) => {
+      state.nextToken = value.payload
     },
   },
 });
@@ -77,6 +84,7 @@ export const {
   setChannels,
   setChannelArn,
   setChannelMessages,
+  setNextToken,
   pushNewChannelMessage,
   updateChannelMessage,
   deleteChannelMessage,
