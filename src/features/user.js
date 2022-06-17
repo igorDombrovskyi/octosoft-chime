@@ -17,15 +17,17 @@ export const userSlice = createSlice({
     },
     setCompanionList: (state, value) => {
       console.log("init compnanion list");
-      value.payload.map((channel) => {
-        let summary = channel.ChannelSummary;
 
-        state.companionList.push({
+      let arr = value.payload.map((channel) => {
+        let summary = channel.ChannelSummary;
+        return {
           userId: JSON.parse(summary.Metadata).patientId,
           name: faker.name.findName(),
           avatarUrl: faker.image.avatar(),
-        });
+        };
       });
+
+      state.companionList = [...state.companionList, ...arr];
     },
   },
 });

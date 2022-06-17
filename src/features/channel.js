@@ -6,11 +6,11 @@ export const channelSlice = createSlice({
     channelList: [],
     channelArn: "",
     channelMessages: [],
-    nextToken: '',
+    nextToken: "",
   },
   reducers: {
     setChannels: (state, value) => {
-      state.channelList = value.payload;
+      state.channelList = [...state.channelList, ...value.payload];
     },
     pushNewChannelMessage: (state, value) => {
       const channel = state.channelList.find(
@@ -74,7 +74,7 @@ export const channelSlice = createSlice({
       state.channelMessages = [...state.channelMessages, ...arr];
     },
     setNextToken: (state, value) => {
-      state.nextToken = value.payload
+      state.nextToken = value.payload;
     },
   },
 });

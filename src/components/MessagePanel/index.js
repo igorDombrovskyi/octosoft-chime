@@ -3,7 +3,7 @@ import "./index.css";
 import { faker } from "@faker-js/faker";
 import { chimeAxios } from "../../helpers/axios.helper";
 import { useDispatch, useSelector } from "react-redux";
-import { setChannelMessages,setNextToken } from "../../features/channel";
+import { setChannelMessages, setNextToken } from "../../features/channel";
 import { ReactComponent as PhoneCall } from "../../utils/icons/phone-call.svg";
 import Message from "./components/Message";
 import MessageBox from "./components/MessageBox";
@@ -43,20 +43,21 @@ export default function MessagePanel(props) {
 
   const onScroll = (e) => {
     if (e.target.scrollTop) {
-      const { scrollTop, scrollHeight, clientHeight, innerHeight } = e.target
-      if (Math.round(scrollTop + clientHeight, 10) === Math.round(scrollHeight, 10)) {
-        // TO SOMETHING HERE
-        console.log('Reached bottom')
-        listMessages(userSelector.userId, props.channelArn, channelSelector.nextToken).then((response) => {
-         
-         dispatch(setNextToken(response.NextToken || null));
-         if(response.NextToken) {
-
-          dispatch(setChannelMessages(response.ChannelMessages));
-         }
-         console.log(channelSelector.nextToken)
+      const { scrollTop, scrollHeight, clientHeight, innerHeight } = e.target;
+      if (
+        Math.round(scrollTop + clientHeight, 10) ===
+        Math.round(scrollHeight, 10)
+      ) {
+        listMessages(
+          userSelector.userId,
+          props.channelArn,
+          channelSelector.nextToken
+        ).then((response) => {
+          dispatch(setNextToken(response.NextToken || null));
+          if (response.NextToken) {
+            dispatch(setChannelMessages(response.ChannelMessages));
+          }
         });
-        
       }
     }
   };
@@ -173,17 +174,8 @@ export default function MessagePanel(props) {
   }, [props.channelArn]);
 
   // useEffect(() => {
-  //   if(nextToken) {
-  //     listMessages(userSelector.userId, props.channelArn, nextToken).then((response) => {
-  //       dispatch(setChannelMessages(response.ChannelMessages));
-  //       setNextToken(response.NextToken || '')
-  //     })
-  //   }
-  // }, [nextToken])
-
-  useEffect(() => {
-    scrollList.current.scrollTop = scrollList.current.scrollHeight;
-  }, [channelSelector.channelMessages]);
+  //   scrollList.current.scrollTop = scrollList.current.scrollHeight;
+  // }, [channelSelector.channelMessages]);
 
   return (
     <div className="container" ref={mainContainer}>
@@ -313,7 +305,7 @@ async function listMessages(userId, channelArn, nextToken) {
       params: {
         userId: userId,
         channelArn: channelArn,
-        nextToken: nextToken || ''
+        nextToken: nextToken || "",
       },
     });
 

@@ -1,3 +1,5 @@
+/* eslint-disable no-loop-func */
+/* eslint-disable no-restricted-globals */
 import React, { useEffect, useState } from "react";
 import { faker } from "@faker-js/faker";
 import * as uuid from "uuid";
@@ -20,20 +22,18 @@ export default function WaitingList() {
   useEffect(() => {
     setUserList(initUsers());
     if (userSelector.userId) {
-      initChannels(userSelector.userId).then((response) => {
-        dispatch(setChannels(response.ChannelMemberships));
-        dispatch(setCompanionList(response.ChannelMemberships));
-      });
+      let token;
+      do {
+        getChannels(userSelector.userId, token).then((data) => {
+          if (data.NextToken) {
+            token = data.NextToken;
+            dispatch(setChannels(data.ChannelMemberships));
+            dispatch(setCompanionList(data.ChannelMemberships));
+          }
+        });
+      } while (token);
     }
   }, []);
-
-  const isLastMessageExists = (userId) => {
-    const channel = channelSelector.channelList.find(
-      (c) => JSON.parse(c.ChannelSummary.Metadata).patientId === userId
-    );
-
-    return channel.lastMessage || "";
-  };
 
   const navToChat = async (patientId, patientAvatar, patientName) => {
     console.log("patientId", patientId);
@@ -80,7 +80,11 @@ export default function WaitingList() {
         className="waiting-list-item-container"
         onClick={(e) => {
           e.preventDefault();
-          navToChat(userSelector.userId, faker.image.avatar(), faker.name.findName());
+          navToChat(
+            userSelector.userId,
+            faker.image.avatar(),
+            faker.name.findName()
+          );
         }}
       >
         <div className="waiting-list-item-avatar-container">
@@ -102,9 +106,34 @@ export default function WaitingList() {
             <div
               key={i}
               className="waiting-list-item-container"
+              handle
               onClick={(e) => {
                 e.preventDefault();
                 navToChat(user.userId, user.avatarUrl, user.name);
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                if (
+                  confirm(
+                    `Do you want delete chat with these user: ${user.name}`
+                  )
+                ) {
+                  deleteChannel(userSelector.userId, user.userId).then(
+                    (response) => {
+                      alert(response.Message);
+                      let token;
+                      do {
+                        getChannels(userSelector.userId, token).then((data) => {
+                          if (data.NextToken) {
+                            token = data.NextToken;
+                            dispatch(setChannels(data.ChannelMemberships));
+                            dispatch(setCompanionList(data.ChannelMemberships));
+                          }
+                        });
+                      } while (token);
+                    }
+                  );
+                }
               }}
             >
               <div className="waiting-list-item-avatar-container">
@@ -116,7 +145,7 @@ export default function WaitingList() {
                   <span>{moment(new Date()).format("HH:MM")}</span>
                 </div>
                 <div className="waiting-list-last-message">
-                  {<span>{isLastMessageExists(user.userId)}</span>}
+                  <span>{"some time"}</span>
                 </div>
               </div>
             </div>
@@ -143,11 +172,27 @@ function initUsers() {
   return users;
 }
 
-async function initChannels(userId) {
+async function getChannels(userId, token) {
   try {
     const resp = await chimeAxios.get("messaging/listChannels", {
       params: {
         userId: userId,
+        nextToken: token || null,
+      },
+    });
+
+    return resp.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+async function deleteChannel(userId, companionId) {
+  try {
+    const resp = await chimeAxios.delete("messaging/deleteChannel", {
+      params: {
+        userId: userId,
+        companionId: companionId,
       },
     });
 
