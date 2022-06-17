@@ -27,9 +27,10 @@ export default function WaitingList() {
         getChannels(userSelector.userId, token).then((data) => {
           if (data.NextToken) {
             token = data.NextToken;
-            dispatch(setChannels(data.ChannelMemberships));
-            dispatch(setCompanionList(data.ChannelMemberships));
+            getChannels(userSelector.userId, token);
           }
+          dispatch(setChannels(data.ChannelMemberships));
+          dispatch(setCompanionList(data.ChannelMemberships));
         });
       } while (token);
     }
@@ -53,18 +54,6 @@ export default function WaitingList() {
       );
     }
   };
-
-  useEffect(() => {
-    chimeAxios
-      .get("messaging/listChannels", {
-        params: {
-          userId: userSelector.userId,
-        },
-      })
-      .then((response) => {
-        dispatch(setChannels(response.data.ChannelMemberships));
-      });
-  }, []);
 
   return (
     <div className="waiting-list-container">
@@ -106,7 +95,6 @@ export default function WaitingList() {
             <div
               key={i}
               className="waiting-list-item-container"
-              handle
               onClick={(e) => {
                 e.preventDefault();
                 navToChat(user.userId, user.avatarUrl, user.name);
@@ -126,9 +114,10 @@ export default function WaitingList() {
                         getChannels(userSelector.userId, token).then((data) => {
                           if (data.NextToken) {
                             token = data.NextToken;
-                            dispatch(setChannels(data.ChannelMemberships));
-                            dispatch(setCompanionList(data.ChannelMemberships));
+                            getChannels(userSelector.userId, token);
                           }
+                          dispatch(setChannels(data.ChannelMemberships));
+                          dispatch(setCompanionList(data.ChannelMemberships));
                         });
                       } while (token);
                     }
