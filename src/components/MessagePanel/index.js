@@ -11,6 +11,7 @@ import MessageBox from "./components/MessageBox";
 export default function MessagePanel(props) {
   const userSelector = useSelector((state) => state.user);
   const channelSelector = useSelector((state) => state.channel);
+  console.log(channelSelector)
   const dispatch = useDispatch();
 
   const scrollList = useRef(null);
@@ -35,7 +36,7 @@ export default function MessagePanel(props) {
 
   const handleSendMessage = (content) => {
     sendMessage(
-      userSelector.userId,
+      'd8de9353-6588-4b1e-925e-1fdf88efdf5b',
       channelSelector.channelArn,
       content
     ).then();

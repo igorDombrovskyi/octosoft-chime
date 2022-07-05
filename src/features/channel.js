@@ -62,11 +62,11 @@ export const channelSlice = createSlice({
     },
     setChannelArn: (state, value) => {
       state.channelArn = value.payload;
-      const channel = state.channelList.find(
-        (c) => c.ChannelSummary.ChannelArn === value.payload
-      );
-      channel.lastMessage = "";
-      state.channelMessages = [];
+      // const channel = state.channelList.find(
+      //   (c) => c.ChannelSummary.ChannelArn === value.payload
+      // );
+      // channel.lastMessage = "";
+      // state.channelMessages = [];
     },
     setChannelMessages: (state, value) => {
       // state.channelMessages = value.payload.reverse();

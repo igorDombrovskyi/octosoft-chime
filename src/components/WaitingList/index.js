@@ -36,11 +36,15 @@ export default function WaitingList() {
     }
   }, []);
 
-  const navToChat = async (patientId, patientAvatar, patientName) => {
-    console.log("patientId", patientId);
     const resp = await chimeAxios.post("messaging/createChannel", {
-      doctorId: userSelector.userId,
-      patientId: patientId,
+      doctorId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+      patientId: "dfd529c7-0717-460d-8aee-e85242c41af1",
+    });
+
+    await chimeAxios.post("messaging/connectToChannel", {
+      channelArn: resp.data.ChannelArn,
+      userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+      remainingTime: 15
     });
 
     if (resp.data.ChannelArn) {

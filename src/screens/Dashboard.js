@@ -103,6 +103,6 @@ async function getSocketUrl(userId) {
 
     return resp.data;
   } catch (error) {
-    throw error;
+    console.log(error)
   }
 }
