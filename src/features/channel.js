@@ -22,16 +22,16 @@ export const channelSlice = createSlice({
       }
 
       if (state.channelArn === value.payload.ChannelArn) {
-        const { ChannelArn, ...restMessage } = value.payload;
+        const {...restMessage } = value.payload;
         const messages = state.channelMessages;
         messages.push(restMessage);
         state.channelMessages = messages;
       }
     },
     updateChannelMessage: (state, value) => {
-      const channel = state.channelList.find(
-        (c) => c.ChannelSummary.ChannelArn === value.payload.ChannelArn
-      );
+      // const channel = state.channelList.find(
+      //   (c) => c.ChannelSummary.ChannelArn === value.payload.ChannelArn
+      // );
 
       if (state.channelArn === value.payload.ChannelArn) {
         const message = state.channelMessages.find(
@@ -44,9 +44,9 @@ export const channelSlice = createSlice({
       }
     },
     deleteChannelMessage: (state, value) => {
-      const channel = state.channelList.find(
-        (c) => c.ChannelSummary.ChannelArn === value.payload.ChannelArn
-      );
+      // const channel = state.channelList.find(
+      //   (c) => c.ChannelSummary.ChannelArn === value.payload.ChannelArn
+      // );
 
       if (state.channelArn === value.payload.ChannelArn) {
         const message = state.channelMessages.find(

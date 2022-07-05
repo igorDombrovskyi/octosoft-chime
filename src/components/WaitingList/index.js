@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 /* eslint-disable no-restricted-globals */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { faker } from "@faker-js/faker";
 import * as uuid from "uuid";
 import moment from "moment";
@@ -15,9 +15,9 @@ export default function WaitingList() {
   const [userList, setUserList] = useState([]);
 
   const dispatch = useDispatch();
-  const channelSelector = useSelector((state) => state.channel);
+  // const channelSelector = useSelector((state) => state.channel);
 
-  const listChannels = channelSelector.channels;
+  // const listChannels = channelSelector.channels;
 
   useEffect(() => {
     setUserList(initUsers());
@@ -36,28 +36,32 @@ export default function WaitingList() {
     }
   }, []);
 
-    const resp = await chimeAxios.post("messaging/createChannel", {
-      doctorId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
-      patientId: "dfd529c7-0717-460d-8aee-e85242c41af1",
-    });
+  const handlePressCompanion = useCallback(
+    async (patientId, patientAvatar, patientName) => {
+      const resp = await chimeAxios.post("messaging/createChannel", {
+        doctorId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+        patientId: "dfd529c7-0717-460d-8aee-e85242c41af1",
+      });
 
-    await chimeAxios.post("messaging/connectToChannel", {
-      channelArn: resp.data.ChannelArn,
-      userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
-      remainingTime: 15
-    });
+      await chimeAxios.post("messaging/connectToChannel", {
+        channelArn: resp.data.ChannelArn,
+        userId: "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
+        remainingTime: 15,
+      });
 
-    if (resp.data.ChannelArn) {
-      dispatch(setChannelArn(resp.data.ChannelArn));
-      dispatch(
-        setCompanion({
-          companionId: patientId,
-          companionAvatar: patientAvatar,
-          companionName: patientName,
-        })
-      );
-    }
-  };
+      if (resp.data.ChannelArn) {
+        dispatch(setChannelArn(resp.data.ChannelArn));
+        dispatch(
+          setCompanion({
+            companionId: patientId,
+            companionAvatar: patientAvatar,
+            companionName: patientName,
+          })
+        );
+      }
+    },
+    []
+  );
 
   return (
     <div className="waiting-list-container">
@@ -73,7 +77,7 @@ export default function WaitingList() {
         className="waiting-list-item-container"
         onClick={(e) => {
           e.preventDefault();
-          navToChat(
+          handlePressCompanion(
             userSelector.userId,
             faker.image.avatar(),
             faker.name.findName()
@@ -101,7 +105,7 @@ export default function WaitingList() {
               className="waiting-list-item-container"
               onClick={(e) => {
                 e.preventDefault();
-                navToChat(user.userId, user.avatarUrl, user.name);
+                handlePressCompanion(user.userId, user.avatarUrl, user.name);
               }}
               onContextMenu={(e) => {
                 e.preventDefault();
@@ -176,7 +180,7 @@ async function getChannels(userId, token) {
 
     return resp.data;
   } catch (error) {
-    throw error;
+    console.log(error)
   }
 }
 
@@ -191,6 +195,6 @@ async function deleteChannel(userId, companionId) {
 
     return resp.data;
   } catch (error) {
-    throw error;
+    console.log(error)
   }
 }
