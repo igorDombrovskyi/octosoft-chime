@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import "./index.css";
 import { faker } from "@faker-js/faker";
 import { chimeAxios } from "../../helpers/axios.helper";
@@ -8,10 +8,15 @@ import { ReactComponent as PhoneCall } from "../../utils/icons/phone-call.svg";
 import Message from "./components/Message";
 import MessageBox from "./components/MessageBox";
 
-export default function MessagePanel(props) {
+type MessagePanel = {
+  channelArn: string;
+  onPressCall: () => void;
+};
+
+export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
   const userSelector = useSelector((state) => state.user);
   const channelSelector = useSelector((state) => state.channel);
-  console.log(channelSelector)
+  console.log(channelSelector);
   const dispatch = useDispatch();
 
   const scrollList = useRef(null);
@@ -34,9 +39,21 @@ export default function MessagePanel(props) {
     className: "scrolled",
   });
 
+  useEffect(() => {}, [isExpanded]);
+
+  useEffect(() => {
+    if (channelArn) {
+      console.log(channelArn);
+      listMessages(userSelector.userId, channelArn).then((response) => {
+        dispatch(setChannelMessages(response.ChannelMessages));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelArn]);
+
   const handleSendMessage = (content) => {
     sendMessage(
-      'd8de9353-6588-4b1e-925e-1fdf88efdf5b',
+      "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
       channelSelector.channelArn,
       content
     ).then();
@@ -51,7 +68,7 @@ export default function MessagePanel(props) {
       ) {
         listMessages(
           userSelector.userId,
-          props.channelArn,
+          channelArn,
           channelSelector.nextToken
         ).then((response) => {
           dispatch(setNextToken(response.NextToken || null));
@@ -144,35 +161,9 @@ export default function MessagePanel(props) {
     }
   };
 
-  useEffect(() => {
-    if (isExpanded) {
-      mainContainer.current.className = "container expand";
-      phonCall.current.className = "phone-call phone-call-move-right";
-      setTimeout(() => {
-        mainContainer.current.style.width = "1051px";
-        mainContainer.current.className = "container";
-        phonCall.current.style.marginLeft = "680px";
-      }, 1000);
-    } else {
-      mainContainer.current.className = "container expandOut";
-      phonCall.current.className = "phone-call phone-call-move-left";
-      setTimeout(() => {
-        mainContainer.current.style.width = "501px";
-        mainContainer.current.className = "container";
-        phonCall.current.style.marginLeft = "109px";
-      }, 1000);
-    }
-  }, [isExpanded]);
-
-  useEffect(() => {
-    if (props.channelArn) {
-      console.log(props.channelArn);
-      listMessages(userSelector.userId, props.channelArn).then((response) => {
-        dispatch(setChannelMessages(response.ChannelMessages));
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.channelArn]);
+  const handlePhoneCallPress = () => {
+    onPressCall?.();
+  };
 
   // useEffect(() => {
   //   scrollList.current.scrollTop = scrollList.current.scrollHeight;
@@ -210,21 +201,14 @@ export default function MessagePanel(props) {
         <div
           className="phone-call"
           ref={phonCall}
-          onClick={(e) => {
-            e.preventDefault();
-            props.meetingStarted(true);
-          }}
+          onClick={handlePhoneCallPress}
         >
           <PhoneCall />
         </div>
       </div>
       <div
         style={{
-          minWidth: "488px",
           width: "100%",
-          height: "0.76px",
-          background: "#000",
-          opacity: "0.06",
         }}
       ></div>
       <div onScroll={onScroll} className="message-list" ref={scrollList}>
@@ -283,7 +267,7 @@ export default function MessagePanel(props) {
       </div>
     </div>
   );
-}
+};
 
 async function sendMessage(userId, channelArn, content) {
   console.log("Sending");

@@ -1,8 +1,8 @@
-import React from 'react'
+import React from "react";
 import "./App.css";
 import { Provider } from "react-redux";
 import store from "./store";
-import Dashboard from "./screens/Dashboard";
+import { Dashboard } from "./screens/Dashboard";
 
 function App() {
   return (

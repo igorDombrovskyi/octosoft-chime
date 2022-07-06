@@ -10,7 +10,7 @@ import { ReactComponent as StopCircle } from "../../utils/icons/stop-circle.svg"
 import { ReactComponent as Video } from "../../utils/icons/video.svg";
 import { ReactComponent as Minimze } from "../../utils/icons/minimize.svg";
 
-import "./index.css";
+import styles from "./index.module.scss";
 
 export default function Meeting(props) {
   const { user } = useSelector((state) => state);
@@ -81,24 +81,7 @@ export default function Meeting(props) {
     fullVideoTile.current.id = "full-video";
   }, []);
 
-  useEffect(() => {
-    console.log(isExpanded);
-    if (isExpanded) {
-      meetingContainer.current.className = "meeting-container expand";
-      smallVideoTile.current.className = "tile-move-right";
-      setTimeout(() => {
-        smallVideoTile.current.className = "tile-right";
-        meetingContainer.current.className = "meeting-container-expand";
-      }, 1000);
-    } else {
-      meetingContainer.current.className = "meeting-container expandOut";
-      smallVideoTile.current.className = "tile-move-left";
-      setTimeout(() => {
-        smallVideoTile.current.className = "tile-left";
-        meetingContainer.current.className = "meeting-container";
-      }, 1000);
-    }
-  }, [isExpanded]);
+  useEffect(() => {}, [isExpanded]);
 
   const joinVideoCall = async () => {
     const logger = new Chime.ConsoleLogger(
@@ -228,65 +211,8 @@ export default function Meeting(props) {
   };
 
   return (
-    <div className="meeting-container" ref={meetingContainer}>
-      <select
-        onChange={(e) => {
-          e.preventDefault();
-          startMeet(
-            users.find((u) => u.userId === e.target.value).userId,
-            users.find((u) => u.userId !== e.target.value).userId
-          );
-        }}
-      >
-        <option defaultValue>Select user to call</option>
-        {users.map((user, i) => {
-          return <option value={user.userId}>{user.label}</option>;
-        })}
-      </select>
-      {videoDeviceList ? (
-        <select
-          disabled
-          onChange={(e) => {
-            e.preventDefault();
-            changeVidDev(e.target.value);
-          }}
-        >
-          {videoDeviceList.map((videoDevice, i) => {
-            console.log(videoDevice);
-            return (
-              <option
-                defaultValue={
-                  videoDeviceSelected === videoDevice.deviceId ? true : false
-                }
-                value={videoDevice.label}
-              >
-                {videoDevice.label}
-              </option>
-            );
-          })}
-        </select>
-      ) : (
-        ""
-      )}
-      {audioInputDeviceList ? (
-        <select
-          onChange={(e) => {
-            e.preventDefault();
-            setVideoDeviceSelected(e.target.value);
-
-            session.audioVideo.startAudioInput(e.target.value.deviceId);
-          }}
-        >
-          {audioInputDeviceList.map((audioDevice, i) => {
-            console.log(audioDevice);
-            return <option value={audioDevice}>{audioDevice.label}</option>;
-          })}
-        </select>
-      ) : (
-        ""
-      )}
-
-      <div className="control-btns">
+    <div className={styles.container} ref={meetingContainer}>
+      <div className={styles.controls}>
         <button
           onClick={(e) => {
             e.preventDefault();

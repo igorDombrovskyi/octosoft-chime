@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Meeting from "../components/Meeting";
-import MessagePanel from "../components/MessagePanel";
-import WaitingList from "../components/WaitingList";
 import {
   deleteChannelMessage,
   pushNewChannelMessage,
   updateChannelMessage,
 } from "../features/channel";
 import { chimeAxios } from "../helpers/axios.helper";
+import { ChimeView } from "../components/Chime";
 
-export default function Dashboard() {
+export const Dashboard = () => {
   const userSelector = useSelector((state) => state.user);
   const channelSelector = useSelector((state) => state.channel);
   const dispatch = useDispatch();
@@ -78,20 +76,11 @@ export default function Dashboard() {
   };
 
   return (
-    <>
-      <WaitingList />
-
-      {meetingStarted ? (
-        <Meeting meetingStarted={meetingStarts} />
-      ) : (
-        <MessagePanel
-          meetingStarted={meetingStarts}
-          channelArn={channelSelector.channelArn || ""}
-        />
-      )}
-    </>
+    <div>
+      <ChimeView />
+    </div>
   );
-}
+};
 
 async function getSocketUrl(userId) {
   try {
@@ -103,6 +92,6 @@ async function getSocketUrl(userId) {
 
     return resp.data;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
