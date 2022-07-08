@@ -1,11 +1,10 @@
+/* eslint-disable react/prop-types */
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import ImageModal from "../ImageModal";
 import moment from "moment";
 import "./index.css";
 
 export default function Message(props) {
-  const { channel, user } = useSelector((state) => state);
   const [showModal, setShowModal] = useState(false);
   const [showToolbox, setShowToolbox] = useState(false);
   const [repliedMessage, setRepliedMessage] = useState({
