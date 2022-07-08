@@ -32,7 +32,7 @@ import { fmtMSS } from "../../../utils/formatesrs";
 
 export const ChimeMeeting = () => {
   const { setIsVideoEnabled, isVideoEnabled, toggleVideo } = useLocalVideo();
-  const { meetingTime } = useSelector((state) => state.channel);
+  const { meetingTime } = useSelector((state) => state["channel"]);
   const { toggleMute, muted } = useToggleLocalMute();
   const [meetingTimeInSeconds, setMeetingTimeInSeconds] = useState(0);
   const [stopLocalVideo, setStopLocalVideo] = useState(false);
@@ -57,6 +57,7 @@ export const ChimeMeeting = () => {
 
   useEffect(() => {
     if (meetingTime) {
+      //@ts-ignore
       interval.current = setInterval(() => {
         setMeetingTimeInSeconds((meetingTimeInSeconds || meetingTime) + 1);
       }, 1000);

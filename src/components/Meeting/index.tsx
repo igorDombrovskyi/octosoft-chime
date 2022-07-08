@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Chime from "amazon-chime-sdk-js";
-import { MeetingProvider, useMeetingEvent } from 'amazon-chime-sdk-component-library-react';
+import {
+  MeetingProvider,
+  useMeetingEvent,
+} from "amazon-chime-sdk-component-library-react";
 import { useSelector } from "react-redux";
 import { chimeAxios } from "../../helpers/axios.helper";
 import { ReactComponent as Maximize } from "../../utils/icons/maximize-2.svg";
@@ -13,7 +16,9 @@ import { ReactComponent as Minimze } from "../../utils/icons/minimize.svg";
 
 import styles from "./index.module.scss";
 
+/*@ts-ignore */
 export default function Meeting(props) {
+  /*@ts-ignore */
   const { user } = useSelector((state) => state);
   const [meetingResponse, setMeetingResponse] = useState({});
   const [attendeeResponse, setAttendeeResponse] = useState({});
@@ -43,6 +48,7 @@ export default function Meeting(props) {
     },
   ]);
 
+  /*@ts-ignore */
   const startMeet = (userId, companionId) => {
     getMeeting(userId, companionId).then((response) => {
       setMeetingResponse(response.Meeting);
@@ -50,11 +56,16 @@ export default function Meeting(props) {
     });
   };
 
+  /*@ts-ignore */
   const changeVidDev = async (label) => {
     console.log(label);
+    /*@ts-ignore */
     const list = await session.audioVideo.listVideoInputDevices();
+    /*@ts-ignore */
     const dev = list.find((d) => d.label === label);
+    /*@ts-ignore */
     await session.audioVideo.stopVideoInput();
+    /*@ts-ignore */
     await session.audioVideo.startVideoInput(dev.deviceId);
   };
 
@@ -70,15 +81,20 @@ export default function Meeting(props) {
   }, [meetingResponse, attendeeResponse]);
 
   useEffect(() => {
+    /*@ts-ignore */
     if (session.audioVideo) {
       stopLocalVideo
-        ? session.audioVideo.stopLocalVideoTile()
-        : session.audioVideo.startLocalVideoTile();
+        ? /*@ts-ignore */
+          session.audioVideo.stopLocalVideoTile()
+        : /*@ts-ignore */
+          session.audioVideo.startLocalVideoTile();
     }
   }, [stopLocalVideo]);
 
   useEffect(() => {
+    /*@ts-ignore */
     smallVideoTile.current.id = "small-video";
+    /*@ts-ignore */
     fullVideoTile.current.id = "full-video";
   }, []);
 
@@ -102,15 +118,18 @@ export default function Meeting(props) {
     );
 
     meetingSession.audioVideo.setDeviceLabelTrigger(async () => {
+      /*@ts-ignore */
       this.switchToFlow("flow-need-permission");
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
       });
+      /*@ts-ignore */
       this.switchToFlow("flow-devices");
       return stream;
     });
 
+    /*@ts-ignore */
     let localTileId = null;
     const smallVideo = document.getElementById("small-video");
     const fullVideo = document.getElementById("full-video");
@@ -118,23 +137,29 @@ export default function Meeting(props) {
     const observer = {
       audioVideoDidStart: () => {
         const localTileId = meetingSession.audioVideo.startLocalVideoTile();
+        /*@ts-ignore */
         meetingSession.audioVideo.bindVideoElement(localTileId, smallVideo);
       },
+      /*@ts-ignore */
       videoTileDidUpdate: (tileState) => {
         if (!tileState.localTile) {
           meetingSession.audioVideo.bindVideoElement(
             tileState.tileId,
+            /*@ts-ignore */
             fullVideo
           );
         } else {
           meetingSession.audioVideo.bindVideoElement(
             tileState.tileId,
+            /*@ts-ignore */
             smallVideo
           );
           localTileId = tileState.tileId;
         }
       },
+      /*@ts-ignore */
       videoTileWasRemoved: (tileId) => {
+        /*@ts-ignore */
         if (localTileId === tileId) {
           console.log(
             `You called removeLocalVideoTile. videoElement can be bound to another tile.`
@@ -148,12 +173,15 @@ export default function Meeting(props) {
 
     const videoDeviceList =
       await meetingSession.audioVideo.listVideoInputDevices(false);
+    /*@ts-ignore */
     setVideoDeviceList(videoDeviceList);
 
     const audioDeviceList =
       await meetingSession.audioVideo.listAudioInputDevices(false);
+    /*@ts-ignore */
     setAudioInputDeviceList(audioDeviceList);
 
+    /*@ts-ignore */
     setVideoDeviceSelected(videoDeviceList[0].deviceId);
     console.log("SELECTED VIDEO DEVICE: ", videoDeviceList[0].deviceId);
 
@@ -181,6 +209,7 @@ export default function Meeting(props) {
     }
 
     meetingSession.audioVideo.bindAudioElement(
+      /*@ts-ignore */
       document.getElementById("my-audio-element")
     );
 
@@ -190,21 +219,28 @@ export default function Meeting(props) {
   };
 
   const stopAudioVideo = async () => {
+    /*@ts-ignore */
     await session.audioVideo.stopVideoInput();
+    /*@ts-ignore */
     await session.audioVideo.stopAudioInput();
+    /*@ts-ignore */
     session.audioVideo.stopVideoPreviewForVideoInput(fullVideoTile.current);
 
+    /*@ts-ignore */
     session.audioVideo.stop();
     return true;
   };
 
   const muteLocalMic = () => {
+    /*@ts-ignore */
     const muted = session.audioVideo.realtimeIsLocalAudioMuted();
     if (muted) {
       console.log("You are muted");
+      /*@ts-ignore */
       session.audioVideo.realtimeUnmuteLocalAudio();
     } else {
       console.log("Other attendees can hear your audio");
+      /*@ts-ignore */
       session.audioVideo.realtimeMuteLocalAudio();
     }
 
@@ -212,6 +248,7 @@ export default function Meeting(props) {
   };
 
   return (
+    /*@ts-ignore */
     <div className={styles.container} ref={meetingContainer}>
       <div className={styles.controls}>
         <button
@@ -247,7 +284,9 @@ export default function Meeting(props) {
             e.preventDefault();
 
             deleteAttendee(
+              /*@ts-ignore */
               meetingResponse.MeetingId,
+              /*@ts-ignore */
               attendeeResponse.AttendeeId
             ).then(() => {
               console.log("deleted");
@@ -267,9 +306,11 @@ export default function Meeting(props) {
       <div className="meeting-source-container">
         <audio id="my-audio-element"></audio>
 
+        {/*@ts-ignore */}
         <video ref={fullVideoTile}></video>
 
         <video
+          /*@ts-ignore */
           ref={smallVideoTile}
           onClick={(e) => {
             e.preventDefault();
@@ -289,6 +330,7 @@ export default function Meeting(props) {
   );
 }
 
+/*@ts-ignore */
 async function getMeeting(userId, companionId) {
   try {
     const response = await chimeAxios.post("meeting/createMeeting", {
@@ -303,6 +345,7 @@ async function getMeeting(userId, companionId) {
   }
 }
 
+/*@ts-ignore */
 async function deleteAttendee(meetingId, attendeeId) {
   try {
     const response = await chimeAxios.delete("meeting/deleteAttendee", {
@@ -319,6 +362,7 @@ async function deleteAttendee(meetingId, attendeeId) {
 }
 
 function stopLocalStream() {
+  /*@ts-ignore */
   window.localStream.getTracks().forEach((track) => {
     track.stop();
   });
@@ -330,6 +374,7 @@ async function startLocalStream() {
       video: true,
       audio: true,
     });
+    /*@ts-ignore */
     window.localStream = stream;
   } catch (error) {
     console.log(error);

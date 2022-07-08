@@ -1,3 +1,4 @@
+/*@ts-ignore */
 import React, { FC, useEffect, useRef, useState } from "react";
 import "./index.css";
 import { faker } from "@faker-js/faker";
@@ -14,7 +15,9 @@ type MessagePanel = {
 };
 
 export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
+  /*@ts-ignore */
   const userSelector = useSelector((state) => state.user);
+  /*@ts-ignore */
   const channelSelector = useSelector((state) => state.channel);
   console.log(channelSelector);
   const dispatch = useDispatch();
@@ -44,13 +47,14 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
   useEffect(() => {
     if (channelArn) {
       console.log(channelArn);
+      /*@ts-ignore */
       listMessages(userSelector.userId, channelArn).then((response) => {
         dispatch(setChannelMessages(response.ChannelMessages));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelArn]);
-
+  /*@ts-ignore */
   const handleSendMessage = (content) => {
     sendMessage(
       "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
@@ -58,12 +62,14 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
       content
     ).then();
   };
-
+  /*@ts-ignore */
   const onScroll = (e) => {
     if (e.target.scrollTop) {
       const { scrollTop, scrollHeight, clientHeight, innerHeight } = e.target;
       if (
+        /*@ts-ignore */
         Math.round(scrollTop + clientHeight, 10) ===
+        /*@ts-ignore */
         Math.round(scrollHeight, 10)
       ) {
         listMessages(
@@ -80,6 +86,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
     }
   };
 
+  /*@ts-ignore */
   const handleMessageReply = (messageId, content) => {
     setMsgToReply({
       messageId,
@@ -87,6 +94,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
     });
   };
 
+  /*@ts-ignore */
   const handleUpdateMessage = (messageId, content) => {
     setMsgToUpdate({
       messageId,
@@ -94,21 +102,27 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
     });
   };
 
+  /*@ts-ignore */
   const handleMoveToMessage = (messageId) => {
     if (messageRefs.current[messageId]) {
+      /*@ts-ignore */
       messageRefs.current[messageId].scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
 
+      /*@ts-ignore */
       let classList = messageRefs.current[messageId].children[0].className;
+      /*@ts-ignore */
       messageRefs.current[messageId].children[0].className += ` scrolled`;
       setTimeout(() => {
+        /*@ts-ignore */
         messageRefs.current[messageId].children[0].className = classList;
       }, 2000);
     }
   };
 
+  /*@ts-ignore */
   const replyMessage = (replyingMessage, content) => {
     sendMessage(
       userSelector.userId,
@@ -129,6 +143,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
       });
   };
 
+  /*@ts-ignore */
   const updateMessage = (messageId, content) => {
     chimeAxios
       .put("messaging/updateChannelMessage", {
@@ -143,6 +158,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
       });
   };
 
+  /*@ts-ignore */
   const deleteMessage = (messageId) => {
     // eslint-disable-next-line no-restricted-globals
     if (confirm("Are you sure to deletee this message?")) {
@@ -170,6 +186,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
   // }, [channelSelector.channelMessages]);
 
   return (
+    /*@ts-ignore */
     <div className="container" ref={mainContainer}>
       <div className="header">
         <img
@@ -200,6 +217,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
         </div>
         <div
           className="phone-call"
+          /*@ts-ignore */
           ref={phonCall}
           onClick={handlePhoneCallPress}
         >
@@ -213,12 +231,14 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
       ></div>
       <div onScroll={onScroll} className="message-list" ref={scrollList}>
         {channelSelector.channelMessages.length ? (
+          /*@ts-ignore */
           channelSelector.channelMessages.map((message, i) => {
             return (
               <>
                 <div
                   key={i}
                   ref={(el) => {
+                    /*@ts-ignore */
                     messageRefs.current[message.MessageId] = el;
                   }}
                   children={
@@ -269,6 +289,7 @@ export const MessagePanel: FC<MessagePanel> = ({ channelArn, onPressCall }) => {
   );
 };
 
+/*@ts-ignore */
 async function sendMessage(userId, channelArn, content) {
   console.log("Sending");
   try {
@@ -284,6 +305,7 @@ async function sendMessage(userId, channelArn, content) {
   }
 }
 
+/*@ts-ignore */
 async function listMessages(userId, channelArn, nextToken) {
   try {
     const resp = await chimeAxios.get("messaging/listChannelMessages", {
@@ -299,3 +321,5 @@ async function listMessages(userId, channelArn, nextToken) {
     return error;
   }
 }
+
+export default MessagePanel;

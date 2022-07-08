@@ -175,6 +175,7 @@ export const attachFileMessageAPI = async ({
   const fd = new FormData();
   fd.append("userId", userId);
   fd.append("channelArn", channelArn);
+  //@ts-ignore
   fd.append("file", file);
   fd.append("pendingId", pendingId);
   const resp = await axios.post(

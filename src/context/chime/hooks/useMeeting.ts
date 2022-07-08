@@ -36,6 +36,7 @@ let meetingId = "";
 
 export const useMeeting = (selfAttendeeId: string, companionId: string) => {
   const dispatch = useDispatch();
+  //@ts-ignore
   const { meetingTime } = useSelector((state) => state.channel);
   const meetingManager = useMeetingManager();
   const [attendeePresent, setAttendeePresent] = useState(false);

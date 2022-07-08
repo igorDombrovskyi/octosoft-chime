@@ -14,6 +14,7 @@ function App() {
     <div className="App">
       <Provider store={store}>
         <ThemeProvider theme={lightTheme}>
+          {/*@ts-ignore */}
           <MeetingProvider>
             <Dashboard />
           </MeetingProvider>
