@@ -1,0 +1,55 @@
+diff --git a/node_modules/amazon-chime-sdk-component-library-react/package.json b/node_modules/amazon-chime-sdk-component-library-react/package.json
+index bee2f2b..d32bd5e 100644
+--- a/node_modules/amazon-chime-sdk-component-library-react/package.json
++++ b/node_modules/amazon-chime-sdk-component-library-react/package.json
+@@ -1,26 +1,28 @@
+ {
+-  "_from": "https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
++  "_from": "amazon-chime-sdk-component-library-react@^3.2.0",
+   "_id": "amazon-chime-sdk-component-library-react@3.2.0",
+   "_inBundle": false,
+   "_integrity": "sha512-8QBsROJgYE2ETqCEVCK5FFnFpWN06VlXWwPC6fPXP0EzEkAMDLfrs7J52OToOrkFBPprgbk76+0j1oF8A/3PRA==",
+   "_location": "/amazon-chime-sdk-component-library-react",
+   "_phantomChildren": {},
+   "_requested": {
+-    "type": "remote",
+-    "raw": "amazon-chime-sdk-component-library-react@https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
++    "type": "range",
++    "registry": true,
++    "raw": "amazon-chime-sdk-component-library-react@^3.2.0",
+     "name": "amazon-chime-sdk-component-library-react",
+     "escapedName": "amazon-chime-sdk-component-library-react",
+-    "rawSpec": "https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
+-    "saveSpec": "https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
+-    "fetchSpec": "https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz"
++    "rawSpec": "^3.2.0",
++    "saveSpec": null,
++    "fetchSpec": "^3.2.0"
+   },
+   "_requiredBy": [
++    "#USER",
+     "/"
+   ],
+   "_resolved": "https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
+   "_shasum": "47c6ba88bc512ad3aa9589b533e632cc5a2e57a9",
+-  "_spec": "amazon-chime-sdk-component-library-react@https://registry.npmjs.org/amazon-chime-sdk-component-library-react/-/amazon-chime-sdk-component-library-react-3.2.0.tgz",
+-  "_where": "/private/var/folders/5h/_gslkqys3v3cvfv1nwpnmvzr0000gn/T/tmp-951k6ut4cAD3ofx",
++  "_spec": "amazon-chime-sdk-component-library-react@^3.2.0",
++  "_where": "/Users/igor/octodoc-web",
+   "author": "",
+   "bugs": {
+     "url": "https://github.com/aws/amazon-chime-sdk-component-library/issues"
+@@ -89,10 +91,10 @@
+     "prettier": "^2.4.1",
+     "prompt-sync": "^4.2.0",
+     "puppeteer": "^2.1.1",
+-    "react": "^17.0.1",
++    "react": "^18.1.0",
+     "react-docgen-typescript-loader": "^3.7.2",
+-    "react-dom": "^17.0.1",
+-    "react-is": "^17.0.0",
++    "react-dom": "^18.1.0",
++    "react-is": "^18.2.0",
+     "resize-observer-polyfill": "^1.5.1",
+     "rimraf": "^2.6.3",
+     "rollup": "^2.26.3",
