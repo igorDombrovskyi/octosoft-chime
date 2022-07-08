@@ -2,7 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 export const channelSlice = createSlice({
   name: "channel",
+  
   initialState: {
+    meetingTime: 0,
     channelList: [],
     channelArn: "",
     channelMessages: [],
@@ -11,6 +13,9 @@ export const channelSlice = createSlice({
   reducers: {
     setChannels: (state, value) => {
       state.channelList = [...state.channelList, ...value.payload];
+    },
+    setMeetingTime: (state, action) => {
+      state.meetingTime = action.payload
     },
     pushNewChannelMessage: (state, value) => {
       const channel = state.channelList.find(

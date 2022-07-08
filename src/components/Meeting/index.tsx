@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Chime from "amazon-chime-sdk-js";
+import { MeetingProvider, useMeetingEvent } from 'amazon-chime-sdk-component-library-react';
 import { useSelector } from "react-redux";
 import { chimeAxios } from "../../helpers/axios.helper";
 import { ReactComponent as Maximize } from "../../utils/icons/maximize-2.svg";

@@ -9,9 +9,13 @@ type Button = {
 };
 
 export const Button: FC<Button> = ({ children, containerStyles, onPress }) => {
+  const handlePress = (e) => {
+    e.preventDefault();
+    onPress?.();
+  };
   return (
     <button
-      onClick={onPress}
+      onClick={handlePress}
       className={classNames(styles.container, containerStyles)}
     >
       {children}
