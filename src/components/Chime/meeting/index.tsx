@@ -20,12 +20,12 @@ import {
   MeetingStatus,
 } from "amazon-chime-sdk-component-library-react";
 import styles from "./styles.module.scss";
-import Video from "../../../utils/icons/video.svg";
-import Minimze from "../../../utils/icons/minimize.svg";
-import Maximize from "../../../utils/icons/maximize.svg";
-import MessageIcon from "../../../utils/icons/message.svg";
-import Mic from "../../../utils/icons/mic.svg";
-import PhoneCall from "../../../utils/icons/phone-call.svg";
+import { ReactComponent as Video } from "../../../utils/icons/video.svg";
+import { ReactComponent as Minimze } from "../../../utils/icons/minimize.svg";
+import { ReactComponent as Maximize } from "../../../utils/icons/maximize.svg";
+import { ReactComponent as MessageIcon } from "../../../utils/icons/message.svg";
+import { ReactComponent as Mic } from "../../../utils/icons/mic.svg";
+import { ReactComponent as PhoneCall } from "../../../utils/icons/phone-call.svg";
 import { Button } from "../../button";
 import { useMeeting } from "../../../context/chime/hooks/useMeeting";
 import { fmtMSS } from "../../../utils/formatesrs";
