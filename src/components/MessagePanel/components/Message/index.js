@@ -20,42 +20,6 @@ export default function Message(props) {
 
   const messageContent = (msg, className, editedStamp) => {
     let content = msg;
-    if (isJSON(msg)) {
-      content = JSON.parse(msg);
-      if (content.message && content.message.includes("https")) {
-        const splittedUrl = content.message.split("/");
-        const contentType = splittedUrl[splittedUrl.length - 1].split(".")[1];
-        if (
-          contentType.includes("jpg") ||
-          contentType.includes("png") ||
-          contentType.includes("gif") ||
-          contentType.includes("jpeg")
-        ) {
-          return (
-            <>
-              <img
-                src={content.message}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowModal(!showModal);
-                }}
-                className="image-message"
-                alt=""
-              />
-              <ImageModal
-                show={showModal}
-                content={content.message}
-                name={splittedUrl[splittedUrl.length - 1]}
-                handleClose={() => {
-                  console.log("Pressed");
-                  setShowModal(false);
-                }}
-              />
-            </>
-          );
-        }
-      }
-    }
     if (typeof content === "string" && content.includes("https")) {
       const splittedUrl = content.split("/");
       const contentType = splittedUrl[splittedUrl.length - 1].split(".")[1];
@@ -87,9 +51,14 @@ export default function Message(props) {
             />
           </>
         );
+      } else {
+        return (
+          <a href={String(content)} target="_blank" download rel="noreferrer">
+            {String(content)}
+          </a>
+        );
       }
     }
-    console.log(content);
     return editedStamp ? (
       <>
         <span
@@ -230,13 +199,4 @@ export default function Message(props) {
       </div>
     );
   }
-}
-
-function isJSON(str) {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
 }

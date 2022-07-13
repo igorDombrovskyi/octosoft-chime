@@ -1,0 +1,197 @@
+.container {
+  width: 483px;
+  height: 504px;
+  border-radius: 8px;
+  margin-left: 40px;
+  margin-top: 30px;
+  background-color: white;
+  box-shadow: 0px 0px 5px #e5e5e5;
+  position: relative;
+}
+
+.header {
+  height: 61px;
+  padding-left: 42px;
+  padding-right: 42px;
+  padding-top: 30px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.leftHeaderContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.userAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 30px;
+  margin-left: 12px;
+}
+
+.userInfoContainer {
+  display: flex;
+  align-items: center;
+  margin: 0px 16px;
+  margin-left: 16px;
+  height: 38px;
+}
+
+.userInfo {
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.separator {
+  height: 1px;
+  width: 100%;
+  background-color: black;
+  opacity: 0.1;
+  margin-top: 5px;
+}
+
+.waitingTime {
+  position: absolute;
+  top: 15px;
+  right: 40px;
+  font-size: 14px;
+  color: black;
+  font-weight: 700;
+}
+
+.user-info p {
+  margin: 0;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  color: #000000;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  width: 159px;
+  height: 28px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.userStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusСircle {
+  width: 7px;
+  height: 7px;
+  background: #68d391;
+  border-radius: 50%;
+}
+
+.statusText {
+  font-size: 10px;
+  color: #000000;
+  opacity: 0.6;
+  font-family: "Montserrat", sans-serif;
+}
+
+.phoneCall {
+  background: #0f63ff;
+  width: 38px;
+  height: 38px;
+  padding: 3px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 38px;
+  margin-left: 109px;
+  font-size: 15px !important;
+}
+
+.messageList {
+  height: 230px;
+  padding: 24px 48px;
+  overflow-y: scroll;
+}
+
+.scrollViewContainer {
+  height: 300px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.infinityScrollContainer {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 0 48px;
+  overflow: hidden !important;
+}
+
+.expand {
+  animation-duration: 1s;
+  animation-name: expandIn;
+}
+
+.phone-call-move-right {
+  animation-duration: 1s;
+  animation-name: phoneIconRight;
+}
+
+.phone-call-move-left {
+  animation-duration: 1s;
+  animation-name: phoneIconLeft;
+}
+
+@keyframes phoneIconRight {
+  from {
+    margin-left: 109px;
+  }
+  to {
+    margin-left: 680px;
+  }
+}
+
+@keyframes phoneIconLeft {
+  from {
+    margin-left: 680px;
+  }
+  to {
+    margin-left: 109px;
+  }
+}
+
+@keyframes expandIn {
+  from {
+    width: 504px;
+  }
+  to {
+    width: 1051px;
+  }
+}
+
+.expandOut {
+  animation-duration: 1s;
+  animation-name: expandOut;
+}
+
+@keyframes expandOut {
+  from {
+    width: 1051px;
+  }
+  to {
+    width: 504px;
+  }
+}
+
+@container container  (min-width: 1051px) {
+  .phone-call {
+    margin-left: 677px;
+    transition: ease-in;
+  }
+}

@@ -51,7 +51,6 @@ export default function Meeting(props) {
   };
 
   const changeVidDev = async (label) => {
-    console.log(label);
     const list = await session.audioVideo.listVideoInputDevices();
     const dev = list.find((d) => d.label === label);
     await session.audioVideo.stopVideoInput();

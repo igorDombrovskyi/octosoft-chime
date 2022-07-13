@@ -1,0 +1,62 @@
+.messageBoxContainer {
+  display: flex;
+  position: absolute;
+  bottom: 42px;
+  align-items: center;
+  right: 0;
+  left: 0;
+  margin: 0;
+  flex-direction: row;
+  justify-content: space-between;
+  align-self: flex-end;
+  padding: 0 42px 0px 42px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+  border: 0.4px solid #dfe0eb;
+  border-radius: 4px;
+  width: 100%;
+  margin-left: 20px;
+}
+
+.input {
+  flex: 0.9;
+  min-height: 42px;
+  height: fit-content;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 500;
+  border: none;
+  font-size: 12px;
+  padding-left: 12px;
+}
+
+input:focus {
+  outline: none !important;
+  border: none;
+  box-shadow: 0 0 0.3px #719ece;
+}
+
+input::placeholder {
+  color: #a0a0a0;
+  padding: 15px 299px 15px 0;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 14px;
+}
+
+.message-to-reply {
+  display: flex;
+  justify-content: center;
+  text-align: justify;
+  border-top: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: none;
+  border-left: 1px solid grey;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}

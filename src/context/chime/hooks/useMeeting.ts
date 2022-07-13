@@ -51,8 +51,6 @@ export const useMeeting = (selfAttendeeId: string, companionId: string) => {
 
     meetingId = meetingResponse.Meeting.MeetingId;
 
-    console.log(meetingResponse.Meeting.MeetingId);
-
     const remainingTime = await getRemainingTime(
       meetingResponse.Meeting.MeetingId
     );

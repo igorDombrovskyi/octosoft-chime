@@ -1,124 +1,240 @@
-import React, {ReactNode, createContext, useCallback, useState} from 'react';
-
-import _ from 'lodash';
-
-import {useSockets} from './hooks/useSocket';
-
-import {useAppSelector} from '../../redux/hooks';
-import {useDispatch} from 'react-redux';
+import { ReactNode, createContext, useCallback, useState, useRef } from "react";
+import _ from "lodash";
+import { ChatMessage, IInitChat } from "../types";
 import {
-  attachFileMessage,
-  createChannel,
-  deleteMessage,
-  editMessage,
-  getChatMessages,
-  sendMessage,
-} from '../../redux/actions/chime';
-
-import {IFileObject} from '../../types/files';
+  attachFileMessageAPI,
+  connectToChatApi,
+  createChatChanelAPI,
+  deleteMessageAPI,
+  disconnectFromChatApi,
+  editMessageAPI,
+  getChatConsultTimeApi,
+  getChatMessagesAPI,
+  getConnectionLinkAPI,
+  sendMessageAPI,
+} from "../../api/communication";
+import cuid from "cuid";
+import { useReducer } from "react";
+import { Actions, chatReducer, initialState } from "./reducer";
 
 type ContextState = {
-  initChat: (remainingTime: number) => void;
-  handleSendMessage: (message: string, pendingId: string) => void;
+  initChat: (data: IInitChat) => void;
+  handleSendMessage: (data: { message: string; pendingId: string }) => void;
   handleEditMessage: (message: string, messageId: string) => void;
   handleDeleteMessage: (messageId: string) => void;
-  handleAttachFile: (file: IFileObject | null, pendingId: string) => void;
+  handleAttachFile: (file: null, pendingId: string) => void;
   closeConnection: () => void;
-  getMoreMessages: () => void;
+  messages: Array<ChatMessage>;
+  sendMessage: (value: string) => void;
+  handleLoadMore: () => void;
+  nextToken: string;
   isLoadingConnection: boolean;
+  chatTime: number | string;
 };
 
 export const ChatChimeContext = createContext({
   initChat: _.noop,
 } as ContextState);
 
-export const ChatChimeContextProvider = ({children}: {children: ReactNode}) => {
-  const {user, chanelArn} = useAppSelector((state) => ({
-    user: state.user.user,
-    chanelArn: state.communication.channel.channelArn,
-  }));
-  const dispatch = useDispatch();
+export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
+  const [state, dispatch] = useReducer(chatReducer, initialState);
+  const [connectionLink, setConnectionLink] = useState("");
+  const [channelArn, setChannerArn] = useState("");
+  const [chatTime, setChatTime] = useState(0);
+  const [nextToken, setNextToken] = useState("");
+  const [initData, setInitData] = useState<IInitChat>({
+    userId: "",
+    remainingTime: "",
+    companionId: "",
+  });
+  const [chatMessages, setChatMessages] = useState([]);
 
   const [isLoadingConnection, setIsLoadingConnection] = useState(false);
 
-  const {connectSocket, closeConnection} = useSockets();
+  const initChat = useCallback(async (initData: IInitChat) => {
+    dispatch({ type: Actions.setInitData, data: initData });
 
-  const initChat = useCallback(
-    async (remainingTime) => {
-      try {
-        if (user?.userInfo) {
-          const data = {
-            userId: user?.userInfo?.id,
-            companionId: 'd8de9353-6588-4b1e-925e-1fdf88efdf5b',
-            remainingTime: remainingTime,
-          };
+    const data = {
+      userId: initData.userId,
+      companionId: initData.companionId,
+    };
+    try {
+      //@ts-ignore
+      const resp = await createChatChanelAPI(data);
 
-          setIsLoadingConnection(true);
-          const res = await dispatch(createChannel(data));
+      const linkResp = await getConnectionLinkAPI({
+        userId: initData.userId,
+      });
 
-          connectSocket(res);
-          setIsLoadingConnection(false);
-          return Promise.resolve('');
+      await connectToChatApi({
+        userId: initData.userId,
+        channelArn: resp.ChannelArn,
+        remainingTime: initData.remainingTime,
+      });
+
+      const chatMessagesResp = await getChatMessagesAPI({
+        userId: initData.userId,
+        channelId: resp.ChannelArn,
+      });
+
+      dispatch({
+        type: Actions.setChatTime,
+        data: chatMessagesResp.CurrentTime,
+      });
+      dispatch({ type: Actions.setConenctionLink, data: linkResp.ConnectLink });
+      dispatch({ type: Actions.setChannelArn, data: resp.ChannelArn });
+      dispatch({
+        type: Actions.setNextToken,
+        data: chatMessagesResp.NextToken,
+      });
+      dispatch({
+        type: Actions.setChatMessages,
+        data: chatMessagesResp.ChannelMessages,
+      });
+      dispatch({
+        type: Actions.setChatMessages,
+        data: chatMessagesResp.ChannelMessages,
+      });
+
+      connectSocket(linkResp.ConnectLink);
+    } catch (e) {}
+  }, []);
+
+  const socket = useRef<WebSocket>();
+
+  const connectSocket = (link: string) => {
+    if (link) {
+      socket.current = new WebSocket(link);
+
+      socket.current.onmessage = async (e) => {
+        const message = JSON.parse(e.data).Headers["x-amz-chime-event-type"];
+        const data = JSON.parse(e.data);
+        const payload = JSON.parse(data.Payload);
+        const { ChannelArn, ...parsedMessage } = payload;
+        try {
+          const parsedContent = JSON.parse(parsedMessage.Content);
+          parsedMessage.Content = parsedContent?.message;
+          parsedMessage.pendingId = parsedContent?.pendingId;
+        } catch {}
+        if (message === "CREATE_CHANNEL_MESSAGE") {
+          if (!chatTime && parsedMessage.Sender.Name !== initData.userId) {
+            //@ts-ignore
+            dispatch({ type: Actions.setChatTime, data: 1 });
+          }
+          dispatch({
+            type: Actions.setNewMessage,
+            data: { message: parsedMessage, ChannelArn },
+          });
+        } else if (message === "UPDATE_CHANNEL_MESSAGE") {
+          dispatch({
+            type: Actions.updateMessage,
+            data: { message: parsedMessage, ChannelArn },
+          });
+        } else if (message === "DELETE_CHANNEL_MESSAGE") {
+          dispatch({
+            type: Actions.deleteMessage,
+            data: { message: parsedMessage, ChannelArn },
+          });
         }
-      } catch (e) {}
-    },
-    [user],
-  );
+      };
+      socket.current.onerror = () => {
+        // Alert.alert("Error", "Something went wrong");
+      };
+    }
+  };
 
-  const getMoreMessages = useCallback(() => {
-    const userId = user?.userInfo?.id;
-    dispatch(getChatMessages(userId, true));
-  }, [user]);
+  const handleLoadMore = async () => {
+    const chatMessagesResp = await getChatMessagesAPI({
+      userId: state.initData.userId,
+      channelId: state.channelArn,
+      nextToken: state.nextToken,
+    });
 
-  const handleSendMessage = useCallback(
-    (message, pendingId = '') => {
-      dispatch(
-        sendMessage({
-          userId: user?.userInfo?.id,
-          message: message,
-          channelArn: chanelArn,
+    dispatch({ type: Actions.setNextToken, data: chatMessagesResp.NextToken });
+    dispatch({
+      type: Actions.setMoreMessages,
+      data: chatMessagesResp.ChannelMessages,
+    });
+  };
+
+  const closeConnection = async () => {
+    socket.current?.close();
+    await disconnectFromChatApi({
+      userId: state.initData.userId,
+      channelArn: state.channelArn,
+    });
+    const consultTime = await getChatConsultTimeApi({
+      channelArn: state.channelArn,
+    });
+    return consultTime.TotalTime;
+  };
+
+  const handleSendMessage = async ({ message = "", pendingId = "" }) => {
+    dispatch({
+      type: Actions.setNewMessage,
+      data: {
+        message: {
+          Content: message,
+          pendingId: cuid(),
+          Sender: { Name: state.initData.userId },
+        },
+        ChannelArn: state.channelArn,
+      },
+    });
+
+    await sendMessageAPI({
+      userId: state.initData.userId,
+      chanelId: state.channelArn,
+      message: JSON.stringify({ message: message, pendingId }),
+    });
+  };
+
+  const handleEditMessage = async (messageId: string, message: string) => {
+    await editMessageAPI({
+      message,
+      userId: state.initData.userId,
+      chanelId: state.channelArn,
+      messageId,
+    });
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    await deleteMessageAPI({
+      userId: state.initData.userId,
+      chanelId: state.channelArn,
+      messageId,
+    });
+  };
+
+  const handleAttachFile = async (file: any) => {
+    const pendingId = cuid();
+    dispatch({
+      type: Actions.setNewMessage,
+      data: {
+        message: {
+          Content: JSON.stringify(file),
           pendingId,
-        }),
-      );
-    },
-    [user, chanelArn],
-  );
+          Sender: { Name: state.initData.userId },
+        },
+        ChannelArn: state.channelArn,
+      },
+    });
+    await attachFileMessageAPI({
+      userId: state.initData.userId,
+      channelArn: state.channelArn,
+      file,
+      pendingId: pendingId,
+    });
+  };
 
-  const handleEditMessage = useCallback(
-    (message, messageId) => {
-      dispatch(
-        editMessage({
-          userId: user?.userInfo?.id,
-          message: message,
-          channelArn: chanelArn,
-          messageId,
-        }),
-      );
-    },
-    [user, chanelArn],
-  );
+  const sendMessage = (message: string) => {
+    handleSendMessage({
+      message,
+      pendingId: cuid(),
+    });
+  };
 
-  const handleDeleteMessage = useCallback(
-    (messageId) => {
-      dispatch(
-        deleteMessage({
-          userId: user?.userInfo?.id,
-          channelArn: chanelArn,
-          messageId,
-        }),
-      );
-    },
-    [chanelArn, user],
-  );
-
-  const handleAttachFile = useCallback(
-    (file, pendingId) => {
-      dispatch(
-        attachFileMessage({userId: user?.userInfo?.id || '', file, pendingId}),
-      );
-    },
-    [user],
-  );
+  console.log(chatMessages, nextToken);
 
   return (
     <ChatChimeContext.Provider
@@ -126,11 +242,15 @@ export const ChatChimeContextProvider = ({children}: {children: ReactNode}) => {
         initChat,
         closeConnection,
         handleSendMessage,
+        handleLoadMore,
         handleEditMessage,
         handleDeleteMessage,
         handleAttachFile,
-        getMoreMessages,
+        sendMessage,
         isLoadingConnection,
+        nextToken: state.nextToken,
+        messages: state.messages,
+        chatTime: state.chatTime,
       }}
     >
       {children}

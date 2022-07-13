@@ -1,23 +1,18 @@
-/* eslint-disable react/prop-types */
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { chimeAxios } from "../../../../helpers/axios.helper";
-import "./index.css";
+import styles from "./styles.module.scss";
 
 export default function MessageBox(props) {
-  const channelSelector = useSelector((state) => state.channel);
   const userSelector = useSelector((state) => state.user);
   const fileRef = useRef();
 
   const [value, setValue] = useState("");
-  const [file, setFile] = useState({});
 
   const handleChange = (value) => {
     setValue(value);
   };
 
   const sendMessage = (value) => {
-    console.log(props.messageToUpdate);
     if (props.messageToUpdate.messageId) {
       props.updateMessage(props.messageToUpdate.messageId, value);
     } else if (props.messageToReply.messageId) {
@@ -33,20 +28,9 @@ export default function MessageBox(props) {
     setValue(props.messageToUpdate.content);
   }, [props.messageToUpdate.messageId]);
 
-  useEffect(() => {
-    if (file.fileName) {
-      const formData = new FormData();
-      formData.append("file", file.file, file.fileName);
-      formData.append("channelArn", channelSelector.channelArn);
-      formData.append("userId", userSelector.userId);
-      formData.append('pendingId', file.fileName + 'kkfo')
-      chimeAxios.post("messaging/sendChannelAttachment", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-    }
-  }, [file]);
+  const handleSetFile = (e) => {
+    props.onAttachFile(e.target.files[0]);
+  };
 
   return (
     <div>
@@ -59,30 +43,22 @@ export default function MessageBox(props) {
         ""
       )}
 
-      <div className="message-box-container">
-        <img
-          src="./assets/paperclip.svg"
-          alt="paperclip"
-          onClick={(e) => {
-            e.preventDefault();
-            fileRef.current.click();
-          }}
-        />
-        <input
-          type="file"
-          ref={fileRef}
-          hidden
-          onChange={(e) => {
-            e.preventDefault();
-            setFile({
-              file: e.target.files[0],
-              fileName: e.target.files[0].name,
-            });
-          }}
-        />
-        <div className="input-container">
+      <div className={styles.messageBoxContainer}>
+        <div>
+          <img
+            src="./assets/paperclip.svg"
+            alt="paperclip"
+            onClick={(e) => {
+              e.preventDefault();
+              fileRef.current.click();
+            }}
+          />
+          <input type="file" ref={fileRef} hidden onChange={handleSetFile} />
+        </div>
+
+        <div className={styles.inputContainer}>
           <input
-            className="input"
+            className={styles.input}
             onChange={(e) => {
               e.preventDefault();
               handleChange(e.target.value);
@@ -100,7 +76,7 @@ export default function MessageBox(props) {
               e.preventDefault();
               sendMessage(value);
             }}
-            className="input-icon"
+            className={styles.inputIcon}
             src="./assets/navigation.svg"
             alt="send"
           />

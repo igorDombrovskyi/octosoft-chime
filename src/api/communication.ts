@@ -12,7 +12,7 @@ interface IFileObject {
 type CreateMeetingDto = {
   userId: string;
   companionId: string;
-  remainingTime: number;
+  remainingTime: number | string;
 };
 
 export const createMeetingApi = async ({
@@ -50,7 +50,7 @@ export const deleteMeeting = async ({ meetingId }: DeleteMeetingDto) => {
 };
 
 export const getMeetingTimersData = async ({ meetingId }: DeleteMeetingDto) => {
-  console.warn(meetingId)
+  console.warn(meetingId);
   return await axios.get(`${BASE_URL}/meeting/consultTime`, {
     params: {
       meetingId,
@@ -61,10 +61,12 @@ export const getMeetingTimersData = async ({ meetingId }: DeleteMeetingDto) => {
 export const createChatChanelAPI = async ({
   userId,
   companionId,
+  remainingTime,
 }: CreateMeetingDto) => {
   const resp = await axios.post(`${BASE_URL}/messaging/createChannel`, {
     doctorId: companionId,
     patientId: userId,
+    remainingTime,
   });
   return resp.data;
 };
@@ -76,7 +78,7 @@ export const connectToChatApi = async ({
 }: {
   channelArn: string;
   userId: string;
-  remainingTime: string;
+  remainingTime: string | number;
 }) => {
   const resp = await axios.post(`${BASE_URL}/messaging/connectToChannel`, {
     channelArn,
@@ -129,6 +131,12 @@ export const getChatMessagesAPI = async ({
       channelArn: channelId,
       nextToken,
     },
+  });
+  resp.data.ChannelMessages.forEach((item) => {
+    try {
+      const parsedContent = JSON?.parse(item.Content);
+      item.Content = parsedContent?.message;
+    } catch (e) {}
   });
   return resp.data;
 };
