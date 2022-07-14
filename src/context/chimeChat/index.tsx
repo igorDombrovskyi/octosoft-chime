@@ -4,6 +4,7 @@ import { ChatMessage, IInitChat } from "../types";
 import {
   attachFileMessageAPI,
   connectToChatApi,
+  connectToMeetingApi,
   createChatChanelAPI,
   deleteMessageAPI,
   disconnectFromChatApi,

@@ -6,8 +6,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // import { TileState, VideoTilesState } from "../../../types/chime";
 import {
+  connectToMeetingApi,
   createMeetingApi,
   deleteMeeting,
+  disconnectFromMeetingApi,
   getMeetingTimersData,
   getRemainingTime,
 } from "../../../api/communication";
@@ -56,6 +58,7 @@ export const useMeeting = (selfAttendeeId: string, companionId: string) => {
     );
 
     dispatch(setMeetingTime(remainingTime.data.CurrentTime));
+    await connectToMeetingApi(meetingId, selfAttendeeId || "");
 
     const meetingSessionConfiguration = new MeetingSessionConfiguration(
       meetingResponse.Meeting,
@@ -97,6 +100,8 @@ export const useMeeting = (selfAttendeeId: string, companionId: string) => {
   const onLeaveMeetingPress = useCallback(async () => {
     const remainingTime = await getRemainingTime(meetingId);
     meetingManager.leave();
+    await disconnectFromMeetingApi(meetingId, selfAttendeeId || "");
+
     if (!attendeePresent && remainingTime.data.CurrentTime / 60 >= 15) {
       await deleteMeeting({
         meetingId: meetingId,

@@ -49,8 +49,29 @@ export const deleteMeeting = async ({ meetingId }: DeleteMeetingDto) => {
   });
 };
 
+export const connectToMeetingApi = async (
+  meetingId: string,
+  userId: string,
+) => {
+  const resp = await axios.post(`${BASE_URL}/meeting/connectToMeeting`, {
+    meetingId,
+    userId,
+  });
+  return resp.data;
+};
+
+export const disconnectFromMeetingApi = async (
+  meetingId: string,
+  userId: string,
+) => {
+  const resp = await axios.post(`${BASE_URL}/meeting/disconnectFromMeeting`, {
+    meetingId,
+    userId,
+  });
+  return resp.data;
+};
+
 export const getMeetingTimersData = async ({ meetingId }: DeleteMeetingDto) => {
-  console.warn(meetingId);
   return await axios.get(`${BASE_URL}/meeting/consultTime`, {
     params: {
       meetingId,
