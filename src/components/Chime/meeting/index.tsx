@@ -1,114 +1,77 @@
-import { Message } from "amazon-chime-sdk-js";
-import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import {
-  useLocalVideo,
-  VideoTileGrid,
-  VideoInputControl,
   LocalVideo,
-  MeetingProvider,
   RemoteVideo,
-  useLocalAudioOutput,
-  RemoteVideos,
-  useAudioVideo,
-  useRemoteVideoTileState,
-  useMeetingEvent,
-  useLocalAudioInputActivityPreview,
-  useToggleLocalMute,
-  PreviewVideo,
-  useMeetingStatus,
-  MeetingStatus,
 } from "amazon-chime-sdk-component-library-react";
 import styles from "./styles.module.scss";
+//@ts-ignore
 import { ReactComponent as Video } from "../../../utils/icons/video.svg";
+//@ts-ignore
 import { ReactComponent as Minimze } from "../../../utils/icons/minimize.svg";
+//@ts-ignore
 import { ReactComponent as Maximize } from "../../../utils/icons/maximize.svg";
+//@ts-ignore
 import { ReactComponent as MessageIcon } from "../../../utils/icons/message.svg";
+//@ts-ignore
 import { ReactComponent as Mic } from "../../../utils/icons/mic.svg";
+//@ts-ignore
 import { ReactComponent as PhoneCall } from "../../../utils/icons/phone-call.svg";
 import { Button } from "../../button";
-import { useMeeting } from "../../../context/chime/hooks/useMeeting";
 import { fmtMSS } from "../../../utils/formatesrs";
+import { FC } from "react";
 
-export const ChimeMeeting = () => {
-  const { setIsVideoEnabled, isVideoEnabled, toggleVideo } = useLocalVideo();
-  const { meetingTime } = useSelector((state) => state["channel"]);
-  const { toggleMute, muted } = useToggleLocalMute();
-  const [meetingTimeInSeconds, setMeetingTimeInSeconds] = useState(0);
-  const [stopLocalVideo, setStopLocalVideo] = useState(false);
-  const {
-    joinVideoCall,
-    externalVideoTile,
-    onLeaveMeetingPress,
-    handleGetTimersData,
-  } = useMeeting(
-    "d8de9353-6588-4b1e-925e-1fdf88efdf5b",
-    "fd529c7-0717-460d-8aee-e85242c41af1"
-  );
-  const meetingStatus = useMeetingStatus();
-  const { tiles } = useRemoteVideoTileState();
-  const interval = useRef();
+type ChimeMeeting = {
+  onLeaveMeetingPress: () => void;
+  onPressMessage: () => void;
+  toggleMute: () => void;
+  toggleLocalVideo: () => void;
+  toggleMaximize: () => void;
+  containerStyles?: string;
+  companionVideoStyles?: string;
+  controlsContainerStyles?: string;
+  isMuted: boolean;
+  isVideoEnabled: boolean;
+  isMaximized: boolean;
+  meetingTimeInSeconds: number;
+  tiles: Array<number>;
+};
 
-  useEffect(() => {
-    if (!isVideoEnabled && meetingStatus === MeetingStatus.Succeeded) {
-      toggleVideo();
-    }
-  }, [meetingStatus]);
-
-  useEffect(() => {
-    if (meetingTime) {
-      //@ts-ignore
-      interval.current = setInterval(() => {
-        setMeetingTimeInSeconds((meetingTimeInSeconds || meetingTime) + 1);
-      }, 1000);
-    }
-    return () => {
-      clearInterval(interval.current);
-    };
-  }, [meetingTime, setMeetingTimeInSeconds, meetingTimeInSeconds]);
-
-  const toggleLocalVideo = () => {
-    toggleVideo();
-    setIsVideoEnabled(true);
-  };
-
-  const handleLeaveMeeting = async () => {
-    await handleGetTimersData();
-
-    onLeaveMeetingPress();
-  };
-
+export const ChimeMeeting: FC<ChimeMeeting> = ({
+  toggleMaximize,
+  toggleMute,
+  onLeaveMeetingPress,
+  onPressMessage,
+  toggleLocalVideo,
+  containerStyles,
+  companionVideoStyles,
+  controlsContainerStyles,
+  meetingTimeInSeconds,
+  isMuted,
+  isVideoEnabled,
+  isMaximized,
+  tiles,
+}) => {
   return (
     <>
-      <div className={styles.container}>
+      <div className={`${styles.container}  ${containerStyles}`}>
         <div className={styles.waitingTime}>
           {meetingTimeInSeconds
             ? fmtMSS(meetingTimeInSeconds)
             : "Waiting for attendee..."}
         </div>
-        <div className={styles.companionVideoView}>
-          <RemoteVideo tileId={tiles[0]} />
+        <div className={`${styles.companionVideoView} ${companionVideoStyles}`}>
+          <LocalVideo />
         </div>
-        {isVideoEnabled && <LocalVideo />}
-
-        {false ? (
-          <Button
-            onPress={() => console.log("olollolo")}
-            containerStyles={styles.expandButton}
-          >
-            <Minimze color="#ffffff" fill="#fff" />
-          </Button>
-        ) : (
-          <Button
-            onPress={() => console.log("ololololo")}
-            containerStyles={styles.expandButton}
-          >
+        {isVideoEnabled && <RemoteVideo tileId={tiles[0]} />}
+        <Button onPress={toggleMaximize} containerStyles={styles.expandButton}>
+          {isMaximized ? (
             <Maximize color="#fffff" fill="#fff" />
-          </Button>
-        )}
-        <div className={styles.controls}>
+          ) : (
+            <Minimze color="#ffffff" fill="#fff" />
+          )}
+        </Button>
+        <div className={`${styles.controls} ${controlsContainerStyles}`}>
           <Button containerStyles={styles.controlsButton} onPress={toggleMute}>
-            <Mic fill={muted ? "red" : "transparent"} />
+            <Mic fill={isMuted ? "red" : "transparent"} />
           </Button>
 
           <Button
@@ -120,13 +83,13 @@ export const ChimeMeeting = () => {
 
           <Button
             containerStyles={styles.controlsButton}
-            onPress={() => console.log("ololololo")}
+            onPress={onPressMessage}
           >
-            <MessageIcon fill={stopLocalVideo ? "red" : "transparent"} />
+            <MessageIcon fill={"transparent"} />
           </Button>
           <Button
             containerStyles={styles.phoneCall}
-            onPress={handleLeaveMeeting}
+            onPress={onLeaveMeetingPress}
           >
             <PhoneCall />
           </Button>

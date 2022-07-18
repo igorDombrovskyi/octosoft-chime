@@ -1,90 +1,146 @@
-// import React, {ReactNode, createContext} from 'react';
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useReducer,
+  useState,
+} from "react";
+import {
+  connectToMeetingApi,
+  createMeetingApi,
+  deleteMeeting,
+  disconnectFromMeetingApi,
+  getMeetingTimersData,
+  getRemainingTime,
+} from "../../api/communication";
+import {
+  ConsoleLogger,
+  DefaultEventController,
+  LogLevel,
+  MeetingSessionConfiguration,
+} from "amazon-chime-sdk-js";
+import {
+  DeviceLabels,
+  useMeetingManager,
+} from "amazon-chime-sdk-component-library-react";
+import { Actions, initialState, meetingReducer } from "./reducer";
+import { InitMeeting } from "../types";
+import _ from "lodash";
 
-// import _ from 'lodash';
+let meetingId = "";
 
-// import {useInitChime} from './hooks/initChime';
-// import {useMeeting} from './hooks/useMeeting';
+type MeetingContext = {
+  joinVideoCall: (data: InitMeeting) => void;
+  handleLeaveMeetingPress: () => void;
+  handleGetTimersData: (message: string, messageId: string) => void;
+  isLoadingConnection: boolean;
+  meetingTime: number | null;
+};
 
-// import {VideoTilesState} from '../../types/chime';
+export const MeetingContext = createContext({
+  joinVideoCall: _.noop,
+  handleLeaveMeetingPress: _.noop,
+} as MeetingContext);
 
-// type ContextState = {
-//   mainVideoTile: VideoTilesState | null;
-//   screenShareTile: null | number;
-//   currentMuted: boolean;
-//   selfVideoEnabled: VideoTilesState | null;
-//   isWaitingForAttendee: boolean;
-//   attendees: Array<string>;
-//   isLoadingInitialization: boolean;
-//   clearMeetingData: () => void;
-//   handlePressCamera: () => void;
-//   handlePressMicro: () => void;
-//   initializeMeetingSession: (onInit?: () => void, duration?: number) => void;
-//   handleSwitchCamera: () => void;
-//   handleExitMeeting: () => void;
-//   handleDeleteMeeting: () => void;
-//   handleGetTimersData: () => void;
-// };
+export const MeetingContextProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [state, dispatch] = useReducer(meetingReducer, initialState);
+  const meetingManager = useMeetingManager();
+  const [attendeePresent, setAttendeePresent] = useState(false);
 
-// export const ChimeContext = createContext({
-//   mainVideoTile: null,
-//   screenShareTile: {},
-//   currentMuted: false,
-//   selfVideoEnabled: null,
-//   isWaitingForAttendee: false,
-//   isLoadingInitialization: false,
-//   handlePressCamera: _.noop,
-//   handlePressMicro: _.noop,
-//   initializeMeetingSession: _.noop,
-//   handleSwitchCamera: _.noop,
-//   handleExitMeeting: _.noop,
-//   handleDeleteMeeting: _.noop,
-//   clearMeetingData: _.noop,
-// } as ContextState);
+  const joinVideoCall = async ({
+    selfAttendeeId,
+    companionId,
+    remainingTime: remainingMeetingTime,
+  }: InitMeeting) => {
+    dispatch({
+      type: Actions.setParticipantsIds,
+      data: { selfAttendeeId, companionId },
+    });
+    const meetingResponse = await createMeetingApi({
+      userId: selfAttendeeId,
+      companionId: companionId,
+      remainingTime: remainingMeetingTime,
+    });
 
-// export const ContextProvider = ({children}: {children: ReactNode}) => {
-//   const {
-//     initializeMeetingSession,
-//     selfAttendee,
-//     handleDeleteMeeting,
-//     handleGetTimersData,
-//     isLoading,
-//   } = useInitChime();
+    meetingId = meetingResponse.Meeting.MeetingId;
 
-//   const {
-//     mainVideoTile,
-//     screenShareTile,
-//     currentMuted,
-//     selfVideoEnabled,
-//     isWaitingForAttendee,
-//     attendees,
-//     handlePressCamera,
-//     handlePressMicro,
-//     handleSwitchCamera,
-//     handleExitMeeting,
-//     clearMeetingData,
-//   } = useMeeting(selfAttendee);
+    const remainingTime = await getRemainingTime(
+      meetingResponse.Meeting.MeetingId
+    );
 
-//   return (
-//     <ChimeContext.Provider
-//       value={{
-//         mainVideoTile,
-//         screenShareTile,
-//         currentMuted,
-//         selfVideoEnabled,
-//         isWaitingForAttendee,
-//         attendees,
-//         isLoadingInitialization: isLoading,
-//         handlePressCamera,
-//         handlePressMicro,
-//         initializeMeetingSession,
-//         handleSwitchCamera,
-//         handleExitMeeting,
-//         clearMeetingData,
-//         handleDeleteMeeting,
-//         handleGetTimersData,
-//       }}
-//     >
-//       {children}
-//     </ChimeContext.Provider>
-//   );
-// };
+    dispatch({
+      type: Actions.setMeetingTime,
+      data: { meetingTime: remainingTime.data.CurrentTime },
+    });
+    await connectToMeetingApi(meetingId, selfAttendeeId || "");
+
+    const meetingSessionConfiguration = new MeetingSessionConfiguration(
+      meetingResponse.Meeting,
+      meetingResponse.Attendee
+    );
+
+    const eventController = new DefaultEventController(
+      meetingSessionConfiguration,
+      new ConsoleLogger("SDK", LogLevel.OFF)
+    );
+
+    const options = {
+      deviceLabels: DeviceLabels.AudioAndVideo,
+      eventController,
+    };
+
+    await meetingManager.join(meetingSessionConfiguration, options);
+    await meetingManager.start();
+
+    meetingManager?.meetingSession?.audioVideo.realtimeSubscribeToAttendeeIdPresence(
+      (_, present: boolean, externalId = "") => {
+        if (!state.meetingTime && companionId.includes(externalId) && present) {
+          setAttendeePresent(true);
+          dispatch({
+            type: Actions.setMeetingTime,
+            data: { meetingTime: 1 },
+          });
+        }
+      }
+    );
+  };
+
+  const handleGetTimersData = useCallback(async () => {
+    const timersResp = await getMeetingTimersData({
+      meetingId: meetingId,
+    });
+    return {
+      consultTime: timersResp?.data?.TotalTime || 0,
+    };
+  }, [meetingManager]);
+
+  const handleLeaveMeetingPress = useCallback(async () => {
+    const remainingTime = await getRemainingTime(meetingId);
+    meetingManager.leave();
+    await disconnectFromMeetingApi(meetingId, state.selfAttendeeId || "");
+
+    if (!attendeePresent && remainingTime.data.CurrentTime / 60 >= 15) {
+      await deleteMeeting({
+        meetingId: meetingId,
+      });
+    }
+  }, [attendeePresent, meetingManager, meetingId]);
+
+  return (
+    <MeetingContext.Provider
+      value={{
+        joinVideoCall,
+        handleLeaveMeetingPress,
+        handleGetTimersData,
+        isLoadingConnection: true,
+        meetingTime: state.meetingTime,
+      }}
+    >
+      {children}
+    </MeetingContext.Provider>
+  );
+};
