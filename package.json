@@ -1,7 +1,6 @@
 {
-  "name": "octodoc-web",
+  "name": "octodoc-web-chime",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.1",
     "@testing-library/jest-dom": "^5.16.4",
@@ -58,6 +57,9 @@
     ]
   },
   "devDependencies": {
+    "@babel/cli": "^7.18.6",
+    "@babel/core": "^7.18.6",
+    "@babel/preset-env": "^7.18.6",
     "@faker-js/faker": "^6.3.1",
     "eslint": "^8.18.0",
     "eslint-plugin-react": "^7.30.1",

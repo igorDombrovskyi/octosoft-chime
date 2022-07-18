@@ -4,7 +4,6 @@ import { ChatMessage, IInitChat } from "../types";
 import {
   attachFileMessageAPI,
   connectToChatApi,
-  connectToMeetingApi,
   createChatChanelAPI,
   deleteMessageAPI,
   disconnectFromChatApi,
@@ -33,73 +32,72 @@ type ContextState = {
   chatTime: number | string;
 };
 
+let userId = "";
+
 export const ChatChimeContext = createContext({
   initChat: _.noop,
 } as ContextState);
 
 export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const [connectionLink, setConnectionLink] = useState("");
-  const [channelArn, setChannerArn] = useState("");
-  const [chatTime, setChatTime] = useState(0);
-  const [nextToken, setNextToken] = useState("");
-  const [initData, setInitData] = useState<IInitChat>({
-    userId: "",
-    remainingTime: "",
-    companionId: "",
-  });
-  const [chatMessages, setChatMessages] = useState([]);
-
   const [isLoadingConnection, setIsLoadingConnection] = useState(false);
 
-  const initChat = useCallback(async (initData: IInitChat) => {
-    dispatch({ type: Actions.setInitData, data: initData });
-
-    const data = {
-      userId: initData.userId,
-      companionId: initData.companionId,
-    };
-    try {
-      //@ts-ignore
-      const resp = await createChatChanelAPI(data);
-
-      const linkResp = await getConnectionLinkAPI({
+  const initChat = useCallback(
+    async (initData: IInitChat) => {
+      dispatch({ type: Actions.setInitData, data: initData });
+      userId = initData.userId;
+      const data = {
         userId: initData.userId,
-      });
+        companionId: initData.companionId,
+      };
+      try {
+        //@ts-ignore
+        const resp = await createChatChanelAPI(data);
 
-      await connectToChatApi({
-        userId: initData.userId,
-        channelArn: resp.ChannelArn,
-        remainingTime: initData.remainingTime,
-      });
+        const linkResp = await getConnectionLinkAPI({
+          userId: initData.userId,
+        });
 
-      const chatMessagesResp = await getChatMessagesAPI({
-        userId: initData.userId,
-        channelId: resp.ChannelArn,
-      });
+        await connectToChatApi({
+          userId: initData.userId,
+          channelArn: resp.ChannelArn,
+          remainingTime: initData.remainingTime,
+        });
 
-      dispatch({
-        type: Actions.setChatTime,
-        data: chatMessagesResp.CurrentTime,
-      });
-      dispatch({ type: Actions.setConenctionLink, data: linkResp.ConnectLink });
-      dispatch({ type: Actions.setChannelArn, data: resp.ChannelArn });
-      dispatch({
-        type: Actions.setNextToken,
-        data: chatMessagesResp.NextToken,
-      });
-      dispatch({
-        type: Actions.setChatMessages,
-        data: chatMessagesResp.ChannelMessages,
-      });
-      dispatch({
-        type: Actions.setChatMessages,
-        data: chatMessagesResp.ChannelMessages,
-      });
+        const chatMessagesResp = await getChatMessagesAPI({
+          userId: initData.userId,
+          channelId: resp.ChannelArn,
+        });
 
-      connectSocket(linkResp.ConnectLink);
-    } catch (e) {}
-  }, []);
+        dispatch({
+          type: Actions.setChatTime,
+          data: chatMessagesResp.CurrentTime,
+        });
+        dispatch({
+          type: Actions.setConenctionLink,
+          data: linkResp.ConnectLink,
+        });
+        dispatch({ type: Actions.setChannelArn, data: resp.ChannelArn });
+        dispatch({
+          type: Actions.setNextToken,
+          data: chatMessagesResp.NextToken,
+        });
+        dispatch({
+          type: Actions.setChatMessages,
+          data: chatMessagesResp.ChannelMessages,
+        });
+        dispatch({
+          type: Actions.setChatMessages,
+          data: chatMessagesResp.ChannelMessages,
+        });
+
+        connectSocket(linkResp.ConnectLink);
+      } catch (e) {}
+    },
+    [state]
+  );
+
+  console.log(state);
 
   const socket = useRef<WebSocket>();
 
@@ -118,7 +116,7 @@ export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
           parsedMessage.pendingId = parsedContent?.pendingId;
         } catch {}
         if (message === "CREATE_CHANNEL_MESSAGE") {
-          if (!chatTime && parsedMessage.Sender.Name !== initData.userId) {
+          if (!state.chatTime && parsedMessage.Sender.Name !== userId) {
             //@ts-ignore
             dispatch({ type: Actions.setChatTime, data: 1 });
           }
@@ -176,7 +174,7 @@ export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
       data: {
         message: {
           Content: message,
-          pendingId: cuid(),
+          pendingId,
           Sender: { Name: state.initData.userId },
         },
         ChannelArn: state.channelArn,
@@ -234,8 +232,6 @@ export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
       pendingId: cuid(),
     });
   };
-
-  console.log(chatMessages, nextToken);
 
   return (
     <ChatChimeContext.Provider

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
 import styles from "./styles.module.scss";
 
 export default function MessageBox(props) {
-  const userSelector = useSelector((state) => state.user);
   const fileRef = useRef();
 
   const [value, setValue] = useState("");
@@ -12,11 +10,9 @@ export default function MessageBox(props) {
     setValue(value);
   };
 
-  const sendMessage = (value) => {
-    if (props.messageToUpdate.messageId) {
+  const sendMessage = (value: string) => {
+    if (props?.messageToUpdate?.messageId) {
       props.updateMessage(props.messageToUpdate.messageId, value);
-    } else if (props.messageToReply.messageId) {
-      props.replyToMessage({ ...props.messageToReply }, value);
     } else {
       props.sendMessage(value);
     }
@@ -26,23 +22,18 @@ export default function MessageBox(props) {
 
   useEffect(() => {
     setValue(props.messageToUpdate.content);
-  }, [props.messageToUpdate.messageId]);
+  }, [props?.messageToUpdate?.messageId]);
 
   const handleSetFile = (e) => {
     props.onAttachFile(e.target.files[0]);
   };
 
+  const handleSendMessage = (value: string) => {
+    sendMessage(value);
+  };
+
   return (
     <div>
-      {props.messageToReply.messageId ? (
-        <div className="message-to-reply">
-          <span>{userSelector.companion.companionName}:</span>
-          <p>{props.messageToReply.content}</p>
-        </div>
-      ) : (
-        ""
-      )}
-
       <div className={styles.messageBoxContainer}>
         <div>
           <img
@@ -73,6 +64,7 @@ export default function MessageBox(props) {
           />
           <img
             onClick={(e) => {
+              console.log(e, value);
               e.preventDefault();
               sendMessage(value);
             }}

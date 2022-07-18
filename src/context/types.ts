@@ -4,6 +4,12 @@ export interface IInitChat {
   userId: string;
 }
 
+export interface InitMeeting {
+  remainingTime: string | number;
+  selfAttendeeId: string;
+  companionId: string;
+}
+
 export interface ChatMessage {
   pendingId?: string;
   MessageId: string;

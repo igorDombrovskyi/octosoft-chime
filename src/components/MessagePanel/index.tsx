@@ -1,12 +1,7 @@
 import React, { FC, useEffect, useRef, useState, useContext } from "react";
-// import "./index.css";
-import { faker } from "@faker-js/faker";
-import { chimeAxios } from "../../helpers/axios.helper";
-import { useDispatch, useSelector } from "react-redux";
-import { setChannelMessages, setNextToken } from "../../features/channel";
 //@ts-ignore
 import { ReactComponent as PhoneCall } from "../../utils/icons/phone-call.svg";
-import Message from "./components/Message";
+import { Message } from "./components/Message";
 import MessageBox from "./components/MessageBox";
 import styles from "./styles.module.scss";
 import { ChatChimeContext } from "../../context/chimeChat";
@@ -23,7 +18,6 @@ type ChatParticipant = {
 };
 
 type MessagePanel = {
-  channelArn: string;
   onPressCall: () => void;
   user: ChatParticipant;
   companion: ChatParticipant;
@@ -36,14 +30,12 @@ export const MessagePanel: FC<MessagePanel> = ({
   companion,
 }) => {
   //@ts-ignore
-  const channelSelector = useSelector((state) => state.channel);
   const {
     initChat,
     messages,
     sendMessage,
     handleLoadMore,
     nextToken,
-    isLoadingConnection,
     handleAttachFile,
     handleDeleteMessage,
     handleEditMessage,
@@ -55,10 +47,6 @@ export const MessagePanel: FC<MessagePanel> = ({
   const [meetingTimeInSeconds, setMeetingTimeInSeconds] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [msgToUpdate, setMsgToUpdate] = useState({
-    messageId: "",
-    content: "",
-  });
-  const [msgToReply, setMsgToReply] = useState({
     messageId: "",
     content: "",
   });
@@ -164,18 +152,13 @@ export const MessagePanel: FC<MessagePanel> = ({
           }
           scrollableTarget="scrollableDiv"
         >
-          {!!messages.length &&
+          {messages &&
+            !!messages.length &&
             messages.map((message, i) => {
               return (
                 <>
                   <Message
                     key={message.MessageId}
-                    nextSender={
-                      channelSelector.channelMessages[i + 1]
-                        ? channelSelector.channelMessages[i + 1].Sender.Arn ===
-                          message.Sender.Arn
-                        : false
-                    }
                     isIncoming={message.Sender.Name === user.id}
                     avatarUrl={
                       message.Sender.Name === user.id
@@ -183,12 +166,8 @@ export const MessagePanel: FC<MessagePanel> = ({
                         : companion.avatarUrl
                     }
                     message={message}
-                    userId={user.id}
-                    onSendMessage={sendMessage}
                     handleUpdateMessage={handleUpdateMessage}
                     handleDeleteMessage={handleDeleteMessage}
-                    // handleMessageReply={handleMessageReply}
-                    // handleMoveToMessage={handleMoveToMessage}
                   />
                 </>
               );
@@ -201,7 +180,6 @@ export const MessagePanel: FC<MessagePanel> = ({
           sendMessage={sendMessage}
           onAttachFile={handleAttachFile}
           updateMessage={handleEditMessage}
-          messageToReply={msgToReply}
         />
       </div>
     </div>

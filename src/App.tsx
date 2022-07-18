@@ -1,7 +1,5 @@
 import React from "react";
 import "./App.css";
-import { Provider } from "react-redux";
-import store from "./store";
 import { Dashboard } from "./screens/Dashboard";
 import { ThemeProvider } from "styled-components";
 import {
@@ -9,19 +7,20 @@ import {
   lightTheme,
 } from "amazon-chime-sdk-component-library-react";
 import { ChatContextProvider } from "./context/chimeChat";
+import { MeetingContextProvider } from "./context/chime";
 
 function App() {
   return (
     <div className="App">
-      <Provider store={store}>
+      <MeetingProvider>
         <ChatContextProvider>
-          <ThemeProvider theme={lightTheme}>
-            <MeetingProvider>
+          <MeetingContextProvider>
+            <ThemeProvider theme={lightTheme}>
               <Dashboard />
-            </MeetingProvider>
-          </ThemeProvider>
+            </ThemeProvider>
+          </MeetingContextProvider>
         </ChatContextProvider>
-      </Provider>
+      </MeetingProvider>
     </div>
   );
 }
