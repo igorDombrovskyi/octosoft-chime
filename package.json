@@ -1,6 +1,10 @@
 {
   "name": "octodoc-web-chime",
   "version": "0.1.0",
+  "license": "MIT",
+  "description": "Chime web lib",
+  "author": "ihor.dombrovskyi@inmost.pro",
+  "private": false,
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.1",
     "@testing-library/jest-dom": "^5.16.4",
