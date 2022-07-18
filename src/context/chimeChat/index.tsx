@@ -97,8 +97,6 @@ export const ChatContextProvider = ({ children }: { children: ReactNode }) => {
     [state]
   );
 
-  console.log(state);
-
   const socket = useRef<WebSocket>();
 
   const connectSocket = (link: string) => {
